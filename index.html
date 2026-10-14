@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hlavasapp</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgdmlld0JveD0iMCAwIDEyOCAxMjgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMF8yXzg3KSI+CjxwYXRoIGQ9Ik02NCAxMjhDOTkuMzQ2MiAxMjggMTI4IDk5LjM0NjIgMTI4IDY0QzEyOCAyOC42NTM4IDk5LjM0NjIgMCA2NCAwQzI4LjY1MzggMCAwIDI4LjY1MzggMCA2NEMwIDk5LjM0NjIgMjguNjUzOCAxMjggNjQgMTI4WiIgZmlsbD0iI0UzMUYyOCIvPgo8cGF0aCBkPSJNODEuMDk1NiA4NS4xNTk2VjUyLjc0NTdMNDEuNzk4MiA5Mi4wNDNMMzUuMTAwMSA4NS4zNDQ5TDc0LjQzOCA0Ni4wMDdINDEuOTQzVjM2LjUzSDgxLjA5NTZIOTAuNTcyNVY0Ni4wMDdWODUuMTU5Nkg4MS4wOTU2WiIgZmlsbD0iI0Y4RjhGOCIvPgo8L2c+CjxkZWZzPgo8Y2xpcFBhdGggaWQ9ImNsaXAwXzJfODciPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K">
+<style>
+  :root{
+    --frame:#1E1E1E; --card:#F7F7F7; --white:#FFFFFF; --ink:#0A0A0A;
+    --muted:#6B6B6B; --line:#E4E4E4; --red:#D63333; --red-dark:#B82626;
+    --font:"Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--frame);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+  .frame{padding:16px;min-height:100vh}
+  .card{background:var(--card);border-radius:14px;padding:48px 56px 40px;min-height:calc(100vh - 32px);display:flex;flex-direction:column}
+  header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+  h1{font-size:64px;font-weight:700;letter-spacing:-0.03em;margin:0;line-height:1}
+  h2{font-size:40px;font-weight:700;letter-spacing:-0.025em;margin:0;line-height:1.05}
+  h3{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0}
+  .sub{color:var(--muted);font-size:16px;margin-top:10px}
+  .logo{font-weight:700;font-size:30px;letter-spacing:-0.04em;display:inline-flex;align-items:baseline}
+  .logo-img{height:32px;width:auto;display:block}
+  .logo i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ink);margin-left:2px;font-style:normal}
+  footer{margin-top:auto;padding-top:48px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .btn-round{width:52px;height:52px;border-radius:50%;background:var(--red);border:none;color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none;transition:background .15s, transform .15s}
+  .btn-round:hover{background:var(--red-dark);transform:scale(1.05)}
+  .btn-round.sm{width:38px;height:38px}
+  .btn-round svg{width:46%;height:46%}
+  .btn-round.sm svg{width:58%;height:58%}
+  .btn-text{background:none;border:1px solid var(--ink);border-radius:999px;padding:9px 18px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--ink)}
+  .btn-text:hover{background:var(--ink);color:#fff}
+  .btn-text.danger{border-color:var(--red);color:var(--red)}
+  .btn-text.danger:hover{background:var(--red);color:#fff}
+  .btn-solid{background:var(--ink);color:#fff;border:none;border-radius:999px;padding:12px 24px;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+  .btn-solid:hover{background:var(--red)}
+  .add-row{display:flex;align-items:center;gap:16px;cursor:pointer;user-select:none}
+  .add-row b{font-size:20px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--ink);display:inline-flex;gap:8px;align-items:center}
+  .chip span{color:var(--muted);font-weight:400}
+  .chip:hover{border-color:var(--ink)}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .chip.on span{color:#BDBDBD}
+  .tagpill{display:inline-block;background:#F0F0F0;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:500;color:var(--ink);margin-top:5px}
+  .pills{display:flex;gap:6px;flex-wrap:wrap}
+  .role-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .tagpill.lg{font-size:14px;padding:5px 14px;margin-top:10px}
+  select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23000' stroke-width='1.6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer}
+  .stats{display:flex;gap:48px;margin-bottom:36px;flex-wrap:wrap}
+  .stat .num{font-size:44px;font-weight:700;letter-spacing:-0.03em}
+  .stat .lbl{color:var(--muted);font-size:14px;margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+  .w{background:var(--white);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:18px;cursor:pointer;transition:box-shadow .15s, transform .15s;border:1px solid var(--line)}
+  .w:hover{box-shadow:0 8px 28px rgba(0,0,0,.08);transform:translateY(-2px)}
+  .w-top{display:flex;gap:16px;align-items:center}
+  .avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;background:#E9E9E9;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;color:#999}
+  .avatar.lg{width:150px;height:150px;font-size:52px}
+  .w-name{font-weight:700;font-size:20px;letter-spacing:-0.01em}
+  .w-pos{color:var(--muted);font-size:14px;margin-top:3px}
+  .w-mid{display:flex;justify-content:space-between;align-items:flex-end}
+  .hours{font-size:36px;font-weight:700;letter-spacing:-0.03em;line-height:1}
+  .hours small{font-size:15px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:4px}
+  .stars{color:var(--red);font-size:18px;letter-spacing:2px}
+  .stars .off{color:#D8D8D8}
+  .quick{display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:16px}
+  input,textarea,select{font:inherit;font-size:15px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 12px;color:var(--ink);outline:none;width:100%}
+  input:focus,textarea:focus{border-color:var(--ink);background:#fff}
+  .quick input{flex:1;min-width:0}
+  .quick input.h{max-width:90px}
+  .empty{color:var(--muted);font-size:18px;padding:40px 0}
+
+  /* detail */
+  .back{display:inline-flex;align-self:flex-start;align-items:center;gap:12px;cursor:pointer;font-weight:700;margin-bottom:36px;user-select:none}
+  .back .btn-round{transform:rotate(180deg)}
+  .back .btn-round:hover{transform:rotate(180deg) scale(1.05)}
+  .profile{display:flex;gap:36px;align-items:center;flex-wrap:wrap;margin-bottom:44px}
+  .profile .info{flex:1;min-width:260px}
+  .profile .meta{display:flex;gap:44px;margin-top:22px;flex-wrap:wrap;align-items:flex-end}
+  .rate{display:flex;gap:4px}
+  .rate button{background:none;border:none;font-size:30px;cursor:pointer;color:#D8D8D8;padding:0 2px;line-height:1}
+  .rate button.on{color:var(--red)}
+  .rate button:hover{transform:scale(1.15)}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:26px}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}
+  .tag{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:10px;vertical-align:middle}
+  .items{list-style:none;margin:0;padding:0}
+  .items li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);font-size:16px;line-height:1.4}
+  .items li:first-child{border-top:none}
+  .items li .t{flex:1;white-space:pre-wrap;word-break:break-word}
+  .items li .d{color:var(--muted);font-size:12px;white-space:nowrap;margin-top:3px}
+  .x{background:none;border:none;color:#B5B5B5;cursor:pointer;font-size:20px;line-height:1;padding:0 2px}
+  .x:hover{color:var(--red)}
+  .adder{display:flex;gap:8px;margin-top:14px}
+  .adder input{flex:1}
+  .hidden{display:none !important}
+  .note-empty{color:var(--muted);font-size:14px;padding:6px 0}
+  .full{grid-column:1 / -1}
+  .log-form{display:grid;grid-template-columns:150px 100px 1fr auto;gap:8px;margin-top:14px;align-items:center}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(20,20,20,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .modal{background:var(--card);border-radius:14px;padding:36px;width:100%;max-width:460px;max-height:calc(100vh - 32px);overflow:auto}
+  .modal h2{font-size:32px;margin-bottom:24px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+  .photo-pick{display:flex;align-items:center;gap:16px}
+  .modal-actions{display:flex;justify-content:space-between;gap:10px;margin-top:26px;flex-wrap:wrap}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;font-weight:500;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  @media (max-width:760px){
+    .card{padding:28px 20px}
+    h1{font-size:44px} h2{font-size:30px}
+    .cols{grid-template-columns:1fr}
+    .log-form{grid-template-columns:1fr 1fr}
+    .log-form input[name=note]{grid-column:1 / -1}
+  }
+
+  .topnav{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-bottom:22px;margin-bottom:40px;border-bottom:1px solid var(--line)}
+  .menu{display:flex;gap:6px;flex-wrap:wrap}
+  .menu button{background:none;border:none;font:inherit;font-size:16px;font-weight:700;padding:10px 18px;border-radius:999px;cursor:pointer;color:var(--ink)}
+  .menu button:hover{background:#ECECEC}
+  .menu button.on{background:var(--ink);color:#fff}
+  .tagpill.red{background:var(--red);color:#fff}
+  .doc-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
+  .doc-tools #docSearch{flex:1;min-width:220px}
+  .doc-list{display:flex;flex-direction:column;gap:10px}
+  .doc-row{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:box-shadow .15s}
+  .doc-row:hover{box-shadow:0 8px 28px rgba(0,0,0,.07)}
+  .doc-row .tagpill{margin:0;min-width:64px;text-align:center}
+  .doc-main{flex:1;min-width:0}
+  .doc-sum{font-weight:700;font-size:20px;white-space:nowrap}
+  .doc-actions{display:flex;gap:8px;align-items:center}
+  .doc-actions .btn-text{padding:7px 14px}
+  .seg{display:inline-flex;align-self:flex-start;background:#E9E9E9;border-radius:999px;padding:4px}
+  .seg button{border:none;background:none;font:inherit;font-weight:700;font-size:15px;padding:9px 22px;border-radius:999px;cursor:pointer;color:var(--ink)}
+  .seg button.on{background:var(--ink);color:#fff}
+  .big-input{font-size:22px;font-weight:700;padding:14px 16px}
+  .inv-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px}
+  .items-grid{display:grid;grid-template-columns:1fr 120px 140px 160px 28px;gap:8px;align-items:center;margin-bottom:8px}
+  .items-grid.head span{font-size:13px;font-weight:700;color:var(--muted)}
+  .items-grid .tot[readonly]{background:#EFEFEF;color:var(--ink);font-weight:700}
+  .grand{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid var(--ink);margin-top:20px;padding-top:16px;font-size:22px;font-weight:700}
+  .grand #grandTotal{font-size:34px;letter-spacing:-0.02em}
+  .hint{color:var(--muted);font-size:13px;margin-top:10px}
+  .editor-actions{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px}
+  #printArea{display:none}
+  @media (max-width:760px){
+    .inv-meta{grid-template-columns:1fr 1fr}
+    .items-grid{grid-template-columns:1fr 1fr}
+    .items-grid input:first-child{grid-column:1 / -1}
+    .items-grid.head{display:none}
+    .doc-row{flex-wrap:wrap}
+  }
+  @page{size:A4;margin:16mm}
+  @media print{
+    html,body{background:#fff !important}
+    .frame,.toast,.overlay{display:none !important}
+    #printArea{display:block;color:#0A0A0A;font-size:12pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .p-top{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding-bottom:22px;border-bottom:2px solid #0A0A0A}
+    .p-logo{height:30px}
+    .p-kind{font-size:11pt;font-weight:700;color:#D63333;text-transform:uppercase;letter-spacing:.08em}
+    .p-title{font-size:30pt;font-weight:700;letter-spacing:-0.02em;line-height:1.1;margin-top:4px}
+    .p-sub{font-size:13pt;margin-top:4px;color:#444}
+    .p-dates{display:flex;gap:32px;margin-top:14px}
+    .p-dates span,.p-pay span{display:block;font-size:9pt;color:#6B6B6B;margin-bottom:2px}
+    .p-parties{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:24px;line-height:1.5}
+    .p-label{font-size:9pt;font-weight:700;color:#6B6B6B;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+    .p-pname{font-weight:700;font-size:13pt}
+    .p-items{width:100%;border-collapse:collapse;margin-top:30px}
+    .p-items th{font-size:9pt;text-transform:uppercase;letter-spacing:.06em;color:#6B6B6B;text-align:left;padding:8px 0;border-bottom:1px solid #0A0A0A}
+    .p-items td{padding:10px 0;border-bottom:1px solid #E4E4E4;vertical-align:top}
+    .p-items .r{text-align:right;padding-left:14px;white-space:nowrap}
+    .p-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;padding:16px 0;border-top:2px solid #0A0A0A;font-size:14pt;font-weight:700}
+    .p-total b{font-size:22pt;color:#D63333}
+    .p-pay{display:flex;gap:40px;margin-top:22px;padding:16px 20px;background:#F7F7F7;border-radius:10px;font-weight:700}
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div id="warn" class="hidden" style="background:var(--red);color:#fff;border-radius:14px;padding:14px 20px;margin-bottom:12px;font-weight:500;line-height:1.4">
+    Tady se data neukládají. Otevři soubor <b>Hlavasapp.html</b> dvojklikem ze složky CEO draft na svém Macu (v Safari nebo Chromu).
+  </div>
+  <div class="card" id="app"></div>
+</div>
+<input type="file" id="importFile" accept="application/json" class="hidden">
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+const KEY = 'hlavas-tym-v1';
+const ICON_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>';
+const ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 18L18 6M8 6h10v10"/></svg>';
+
+const LOGO_SRC = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQxIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMTQxIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMTJfMjM0KSI+CjxwYXRoIGQ9Ik0xOS43NDYzIDEyLjA2MUg2Ljk1MDA1VjBIMFYzMS40Mjc2SDYuOTUwMDVWMTcuODY5NkgxOS43NDYzVjMxLjQyNzZIMjYuNjk2NFYwSDE5Ljc0NjNWMTIuMDYxWiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTM2LjM5MzEgMEgzMC4xMDc0VjMxLjQyNzZIMzYuMzkzMVYwWiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTU5LjY4MSAyNi4zNjQxVjE0LjUyMzNDNTkuNjgxIDEzLjE0NDggNTkuMzcwOSAxMi4wMzczIDU4Ljc1MDkgMTEuMjAwN0M1OC4xMzA4IDEwLjM2NDEgNTcuMzMzNiA5LjcxMDQ1IDU2LjM1OTIgOS4yNDMwNUM1NS4zODQ5IDguNzc1NjUgNTQuMzA4MyA4LjQ1NzI4IDUzLjEyNjEgOC4yOTgwOUM1MS45NDM5IDguMTM1NTIgNTAuNzc4OCA4LjA1NzYyIDQ5LjYyNzIgOC4wNTc2MkM0OC4zNTY1IDguMDU3NjIgNDcuMDk1OSA4LjE4MjkzIDQ1Ljg0MjIgOC40MzAxOEM0NC41ODg1IDguNjgwODIgNDMuNDU3NCA5LjA5NzQxIDQyLjQ1NTcgOS42ODMzNkM0MS40NTA3IDEwLjI2OTMgNDAuNjI2MiAxMS4wNDgzIDM5Ljk3NTUgMTIuMDE3QzM5LjMyNDggMTIuOTg1NiAzOC45NTY5IDE0LjIwNDkgMzguODY4MyAxNS42NzE1SDQ1LjE1NEM0NS4yNzMyIDE0LjQzODYgNDUuNjg1NSAxMy41NTggNDYuMzk0MSAxMy4wMjk3QzQ3LjEwMjcgMTIuNTAxMyA0OC4wNzcxIDEyLjIzNzEgNDkuMzE3MiAxMi4yMzcxQzQ5Ljg3NTkgMTIuMjM3MSA1MC40MDA2IDEyLjI3NDQgNTAuODg3OCAxMi4zNDU1QzUxLjM3NSAxMi40MiA1MS44MDA4IDEyLjU2NTcgNTIuMTcyMiAxMi43ODU4QzUyLjU0MDEgMTMuMDA2IDUyLjgzNjUgMTMuMzE0MiA1My4wNTggMTMuNzEwNUM1My4yNzk0IDE0LjEwNjcgNTMuMzg4NCAxNC42NDE5IDUzLjM4ODQgMTUuMzE1OUM1My40MTkxIDE1Ljk2MjggNTMuMjI0OSAxNi40NTM5IDUyLjgxMjcgMTYuNzg5MkM1Mi40MDA0IDE3LjEyNzkgNTEuODM4MyAxNy4zODE5IDUxLjEyOTcgMTcuNTU4QzUwLjQyMSAxNy43MzQyIDQ5LjYxMDIgMTcuODY2MyA0OC42OTM3IDE3Ljk1NDNDNDcuNzc3MyAxOC4wNDI0IDQ2Ljg0NzIgMTguMTYwOSA0NS45MDM1IDE4LjMwNjZDNDQuOTU5OCAxOC40NTIyIDQ0LjAyMjkgMTguNjUyIDQzLjA5MjggMTguODk5M0M0Mi4xNjI3IDE5LjE0OTkgNDEuMzM0OSAxOS41MjI1IDQwLjYxMjYgMjAuMDIwNEMzOS44OTA0IDIwLjUxODIgMzkuMjk3NiAyMS4xODU1IDM4Ljg0MSAyMi4wMjIxQzM4LjM4NDUgMjIuODU4NiAzOC4xNTYyIDIzLjkyMjEgMzguMTU2MiAyNS4yMTI2QzM4LjE1NjIgMjYuMzg3OCAzOC4zNTM4IDI3LjQwMDUgMzguNzUyNSAyOC4yNTA3QzM5LjE1MTEgMjkuMTAwOCAzOS43MDMgMjkuODA1MyA0MC40MTE2IDMwLjM2NDFDNDEuMTIwMiAzMC45MjMgNDEuOTQ0NyAzMS4zMzI4IDQyLjg5MTggMzEuNTk3QzQzLjgzNTUgMzEuODYxMiA0NC44NTQyIDMxLjk5MzMgNDUuOTQ3OCAzMS45OTMzQzQ3LjM2NTEgMzEuOTkzMyA0OC43NTE3IDMxLjc4NjcgNTAuMTExIDMxLjM3NjhDNTEuNDY3IDMwLjk2NyA1Mi42NDkxIDMwLjI0OSA1My42NTQyIDI5LjIxOTNDNTMuNjg0OCAyOS42MDIxIDUzLjczNTkgMjkuOTc0NiA1My44MDc1IDMwLjM0MDRDNTMuODgyNCAzMC43MDYyIDUzLjk3NzggMzEuMDY1MiA1NC4wOTM3IDMxLjQxNzVINjAuNDY4QzYwLjE3MTYgMzAuOTUwMSA1OS45NjcxIDMwLjI0NTYgNTkuODQ3OSAyOS4zMDRDNTkuNzI4NyAyOC4zNjU4IDU5LjY3MDcgMjcuMzgzNiA1OS42NzA3IDI2LjM1NEw1OS42ODEgMjYuMzY0MVpNNTMuMzk1MyAyMi42MjQ5QzUzLjM5NTMgMjIuOTc3MiA1My4zNTc4IDIzLjQ0OCA1My4yODYyIDI0LjAzMzlDNTMuMjExMyAyNC42MTk5IDUzLjAxMzcgMjUuMTk5IDUyLjY5IDI1Ljc3MTRDNTIuMzY2NCAyNi4zNDM4IDUxLjg2MjIgMjYuODM0OSA1MS4xODQyIDI3LjI0NDdDNTAuNTA2MiAyNy42NTQ2IDQ5LjU0NTUgMjcuODYxMiA0OC4zMDU0IDI3Ljg2MTJDNDcuODA0NiAyNy44NjEyIDQ3LjMxNzQgMjcuODE3MSA0Ni44NDM4IDI3LjcyOTFDNDYuMzcwMyAyNy42NDEgNDUuOTU4IDI3LjQ4ODYgNDUuNjAzNyAyNy4yNjg1QzQ1LjI0OTQgMjcuMDQ4MyA0NC45NyAyNi43NDY5IDQ0Ljc2MjIgMjYuMzY3NUM0NC41NTQ0IDI1Ljk4NDggNDQuNDUyMiAyNS41MTc0IDQ0LjQ1MjIgMjQuOTU4NUM0NC40NTIyIDI0LjM3MjYgNDQuNTU0NCAyMy44ODgzIDQ0Ljc2MjIgMjMuNTA1NUM0NC45NyAyMy4xMjI4IDQ1LjI0MjYgMjIuODA3OCA0NS41Nzk5IDIyLjU2MDZDNDUuOTE3MSAyMi4zMDk5IDQ2LjMxNTcgMjIuMTEzNSA0Ni43NzU3IDIxLjk2NzlDNDcuMjMyMiAyMS44MjIyIDQ3LjY5ODkgMjEuNzAzNyA0OC4xNjkxIDIxLjYxNTZDNDguNjY5OSAyMS41Mjc2IDQ5LjE3MDcgMjEuNDUzIDQ5LjY3NDkgMjEuMzk1NUM1MC4xNzU3IDIxLjMzNzkgNTAuNjU2MSAyMS4yNjM0IDUxLjExMjYgMjEuMTc1M0M1MS41NjkyIDIxLjA4NzMgNTEuOTk4NCAyMC45Nzg5IDUyLjM5NyAyMC44NDY4QzUyLjc5NTYgMjAuNzE0NyA1My4xMjYxIDIwLjUzMTggNTMuMzkxOCAyMC4yOTgxVjIyLjYzMTdMNTMuMzk1MyAyMi42MjQ5WiIgZmlsbD0iYmxhY2siLz4KPHBhdGggZD0iTTc2LjUwNTkgOC42NzA2NUw3MS42ODE4IDI0LjIxSDcxLjU5MzJMNjYuNzY1NyA4LjY3MDY1SDYwLjE2OTlMNjguMDA1OCAzMS40Mjc2SDc1LjAwMDFMODIuNzQ3NCA4LjY3MDY1SDc2LjUwNTlaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTAzLjY4OSAyNi4zNjQxVjE0LjUyMzNDMTAzLjY4OSAxMy4xNDQ4IDEwMy4zNzkgMTIuMDM3MyAxMDIuNzU5IDExLjIwMDdDMTAyLjEzOSAxMC4zNjQxIDEwMS4zNDEgOS43MTA0NSAxMDAuMzY3IDkuMjQzMDVDOTkuMzkyNyA4Ljc3NTY1IDk4LjMxNjEgOC40NTcyOCA5Ny4xMzM5IDguMjk4MDlDOTUuOTUxNyA4LjEzNTUyIDk0Ljc4NjYgOC4wNTc2MiA5My42MzUgOC4wNTc2MkM5Mi4zNjQzIDguMDU3NjIgOTEuMTAzNyA4LjE4MjkzIDg5Ljg1IDguNDMwMThDODguNTk2MyA4LjY4MDgyIDg3LjQ2NTIgOS4wOTc0MSA4Ni40NjM2IDkuNjgzMzZDODUuNDU4NSAxMC4yNjkzIDg0LjYzNDEgMTEuMDQ4MyA4My45ODMzIDEyLjAxN0M4My4zMzI2IDEyLjk4NTYgODIuOTY0NyAxNC4yMDQ5IDgyLjg3NjEgMTUuNjcxNUg4OS4xNjE4Qzg5LjI4MSAxNC40Mzg2IDg5LjY5MzMgMTMuNTU4IDkwLjQwMTkgMTMuMDI5N0M5MS4xMTA1IDEyLjUwMTMgOTIuMDg0OSAxMi4yMzcxIDkzLjMyNSAxMi4yMzcxQzkzLjg4MzcgMTIuMjM3MSA5NC40MDg0IDEyLjI3NDQgOTQuODk1NiAxMi4zNDU1Qzk1LjM4MjggMTIuNDIgOTUuODA4NiAxMi41NjU3IDk2LjE4IDEyLjc4NThDOTYuNTQ3OSAxMy4wMDYgOTYuODQ0MyAxMy4zMTQyIDk3LjA2NTggMTMuNzEwNUM5Ny4yODcyIDE0LjEwNjcgOTcuMzk2MyAxNC42NDE5IDk3LjM5NjMgMTUuMzE1OUM5Ny40MjY5IDE1Ljk2MjggOTcuMjMyNyAxNi40NTM5IDk2LjgyMDUgMTYuNzg5MkM5Ni40MDgzIDE3LjEyNzkgOTUuODQ2MSAxNy4zODE5IDk1LjEzNzUgMTcuNTU4Qzk0LjQyODkgMTcuNzM0MiA5My42MTggMTcuODY2MyA5Mi43MDE2IDE3Ljk1NDNDOTEuNzg1MSAxOC4wNDI0IDkwLjg1NSAxOC4xNjA5IDg5LjkxMTMgMTguMzA2NkM4OC45Njc2IDE4LjQ1MjIgODguMDMwNyAxOC42NTIgODcuMTAwNiAxOC44OTkzQzg2LjE3MDYgMTkuMTQ5OSA4NS4zNDI3IDE5LjUyMjUgODQuNjIwNCAyMC4wMjA0QzgzLjg5ODIgMjAuNTE4MiA4My4zMDU0IDIxLjE4NTUgODIuODQ4OCAyMi4wMjIxQzgyLjM5MjMgMjIuODU4NiA4Mi4xNjQxIDIzLjkyMjEgODIuMTY0MSAyNS4yMTI2QzgyLjE2NDEgMjYuMzg3OCA4Mi4zNjE3IDI3LjQwMDUgODIuNzYwMyAyOC4yNTA3QzgzLjE1ODkgMjkuMTAwOCA4My43MTA4IDI5LjgwNTMgODQuNDE5NCAzMC4zNjQxQzg1LjEyODEgMzAuOTIzIDg1Ljk1MjUgMzEuMzMyOCA4Ni44OTk2IDMxLjU5N0M4Ny44NDMzIDMxLjg2MTIgODguODYyIDMxLjk5MzMgODkuOTU1NiAzMS45OTMzQzkxLjM3MjkgMzEuOTkzMyA5Mi43NTk1IDMxLjc4NjcgOTQuMTE4OCAzMS4zNzY4Qzk1LjQ3NDggMzAuOTY3IDk2LjY1NyAzMC4yNDkgOTcuNjYyIDI5LjIxOTNDOTcuNjkyNyAyOS42MDIxIDk3Ljc0MzcgMjkuOTc0NiA5Ny44MTUzIDMwLjM0MDRDOTcuODkwMiAzMC43MDYyIDk3Ljk4NTYgMzEuMDY1MiA5OC4xMDE1IDMxLjQxNzVIMTA0LjQ3NkMxMDQuMTc5IDMwLjk1MDEgMTAzLjk3NSAzMC4yNDU2IDEwMy44NTYgMjkuMzA0QzEwMy43MzYgMjguMzY1OCAxMDMuNjc5IDI3LjM4MzYgMTAzLjY3OSAyNi4zNTRMMTAzLjY4OSAyNi4zNjQxWk05Ny40MDMxIDIyLjYyNDlDOTcuNDAzMSAyMi45NzcyIDk3LjM2NTYgMjMuNDQ4IDk3LjI5NCAyNC4wMzM5Qzk3LjIxOTEgMjQuNjE5OSA5Ny4wMjE1IDI1LjE5OSA5Ni42OTc4IDI1Ljc3MTRDOTYuMzc0MiAyNi4zNDM4IDk1Ljg3IDI2LjgzNDkgOTUuMTkyIDI3LjI0NDdDOTQuNTE0IDI3LjY1NDYgOTMuNTUzMyAyNy44NjEyIDkyLjMxMzIgMjcuODYxMkM5MS44MTI0IDI3Ljg2MTIgOTEuMzI1MiAyNy44MTcxIDkwLjg1MTYgMjcuNzI5MUM5MC4zNzgxIDI3LjY0MSA4OS45NjU4IDI3LjQ4ODYgODkuNjExNSAyNy4yNjg1Qzg5LjI1NzIgMjcuMDQ4MyA4OC45Nzc4IDI2Ljc0NjkgODguNzcgMjYuMzY3NUM4OC41NjIyIDI1Ljk4NDggODguNDYgMjUuNTE3NCA4OC40NiAyNC45NTg1Qzg4LjQ2IDI0LjM3MjYgODguNTYyMiAyMy44ODgzIDg4Ljc3IDIzLjUwNTVDODguOTc3OCAyMy4xMjI4IDg5LjI1MDQgMjIuODA3OCA4OS41ODc3IDIyLjU2MDZDODkuOTI0OSAyMi4zMDk5IDkwLjMyMzYgMjIuMTEzNSA5MC43ODM1IDIxLjk2NzlDOTEuMjQgMjEuODIyMiA5MS43MDY4IDIxLjcwMzcgOTIuMTc2OSAyMS42MTU2QzkyLjY3NzcgMjEuNTI3NiA5My4xNzg1IDIxLjQ1MyA5My42ODI3IDIxLjM5NTVDOTQuMTgzNiAyMS4zMzc5IDk0LjY2MzkgMjEuMjYzNCA5NS4xMjA1IDIxLjE3NTNDOTUuNTc3IDIxLjA4NzMgOTYuMDA2MiAyMC45Nzg5IDk2LjQwNDggMjAuODQ2OEM5Ni44MDM1IDIwLjcxNDcgOTcuMTMzOSAyMC41MzE4IDk3LjM5OTcgMjAuMjk4MVYyMi42MzE3TDk3LjQwMzEgMjIuNjI0OVoiIGZpbGw9ImJsYWNrIi8+CjxwYXRoIGQ9Ik0xMjQuMTg3IDE5LjY1NDVDMTIzLjUwOSAxOS4xNzAyIDEyMi43MzIgMTguNzgwNyAxMjEuODYzIDE4LjQ4OTRDMTIwLjk5MSAxOC4xOTgxIDEyMC4wOTkgMTcuOTQ3NSAxMTkuMTg2IDE3Ljc0MDlDMTE4LjMgMTcuNTM0MyAxMTcuNDI4IDE3LjM0NDYgMTE2LjU3MyAxNy4xNjg1QzExNS43MTcgMTYuOTkyNCAxMTQuOTU4IDE2Ljc5NTkgMTE0LjI5MyAxNi41NzU4QzExMy42MjkgMTYuMzU1NiAxMTMuMDkxIDE2LjA3MTEgMTEyLjY3OCAxNS43MTg5QzExMi4yNjYgMTUuMzY2NiAxMTIuMDU4IDE0LjkxMjggMTEyLjA1OCAxNC4zNTM5QzExMi4wNTggMTMuODg2NSAxMTIuMTc4IDEzLjUxMDYgMTEyLjQxMyAxMy4yMzI4QzExMi42NDggMTIuOTU1MSAxMTIuOTM3IDEyLjc0MTcgMTEzLjI3NSAxMi41OTYxQzExMy42MTIgMTIuNDUwNCAxMTMuOTkgMTIuMzU1NiAxMTQuNDAyIDEyLjMxMTZDMTE0LjgxNSAxMi4yNjc1IDExNS4yIDEyLjI0NzIgMTE1LjU1NCAxMi4yNDcyQzExNi42NzUgMTIuMjQ3MiAxMTcuNjQ5IDEyLjQ2MDYgMTE4LjQ3NyAxMi44ODRDMTE5LjMwMSAxMy4zMTA3IDExOS43NjEgMTQuMTIzNiAxMTkuODUgMTUuMzI2SDEyNS44MjZDMTI1LjcwNiAxMy45MTcgMTI1LjM0NSAxMi43NTE5IDEyNC43NDIgMTEuODI3MkMxMjQuMTM2IDEwLjkwMjYgMTIzLjM3NiAxMC4xNjA5IDEyMi40NjMgOS42MDU0QzEyMS41NDcgOS4wNDk5NCAxMjAuNTA3IDguNjUzNjYgMTE5LjM0MiA4LjQxNjU4QzExOC4xNzcgOC4xODI4NyAxMTYuOTc1IDguMDY0MzMgMTE1LjczNCA4LjA2NDMzQzExNC40OTQgOC4wNjQzMyAxMTMuMjg1IDguMTcyNzEgMTEyLjEwMyA4LjM5Mjg3QzExMC45MjEgOC42MTMwMiAxMDkuODU4IDguOTk1NzUgMTA4LjkxNCA5LjUzNzY2QzEwNy45NyAxMC4wNzk2IDEwNy4yMSAxMC44MjEzIDEwNi42MzUgMTEuNzU5NUMxMDYuMDU5IDEyLjY5NzcgMTA1Ljc3MyAxMy45MDM1IDEwNS43NzMgMTUuMzdDMTA1Ljc3MyAxNi4zNjkyIDEwNS45ODEgMTcuMjEyNSAxMDYuMzkzIDE3LjkwMDFDMTA2LjgwNSAxOC41OTEgMTA3LjM1IDE5LjE2MzQgMTA4LjAzMSAxOS42MTczQzEwOC43MDkgMjAuMDcxMSAxMDkuNDg2IDIwLjQ0MDMgMTEwLjM1NSAyMC43MThDMTExLjIyNCAyMC45OTU3IDExMi4xMiAyMS4yMzk2IDExMy4wMzMgMjEuNDQyOEMxMTUuMjc1IDIxLjkxMzYgMTE3LjAyNiAyMi4zODEgMTE4LjI3OSAyMi44NTE4QzExOS41MzMgMjMuMzIyNiAxMjAuMTYgMjQuMDI3MSAxMjAuMTYgMjQuOTY1M0MxMjAuMTYgMjUuNTI0MSAxMjAuMDI3IDI1Ljk4NDcgMTE5Ljc2MSAyNi4zNTA1QzExOS40OTYgMjYuNzE2MyAxMTkuMTY1IDI3LjAxMSAxMTguNzY3IDI3LjIzMTFDMTE4LjM2OCAyNy40NTEzIDExNy45MjUgMjcuNjEzOSAxMTcuNDM4IDI3LjcxNTVDMTE2Ljk1MSAyNy44MTcxIDExNi40ODcgMjcuODY3OSAxMTYuMDQ0IDI3Ljg2NzlDMTE1LjQyNCAyNy44Njc5IDExNC44MjggMjcuNzkzNCAxMTQuMjUyIDI3LjY0NzdDMTEzLjY3NyAyNy41MDIxIDExMy4xNjkgMjcuMjc1MiAxMTIuNzI2IDI2Ljk2N0MxMTIuMjgzIDI2LjY1ODcgMTExLjkyMiAyNi4yNjI1IDExMS42NDMgMjUuNzc4MUMxMTEuMzYzIDI1LjI5MzggMTExLjIyNCAyNC43MTQ2IDExMS4yMjQgMjQuMDQwNkgxMDUuMjQ4QzEwNS4zMDYgMjUuNTY4MSAxMDUuNjUzIDI2LjgzNDkgMTA2LjI4NyAyNy44NDc2QzEwNi45MjEgMjguODYwMyAxMDcuNzMyIDI5LjY3MzEgMTA4LjcyMyAzMC4yODk2QzEwOS43MTEgMzAuOTA2IDExMC44NDIgMzEuMzQ2MyAxMTIuMTEgMzEuNjEwNUMxMTMuMzc3IDMxLjg3NDcgMTE0LjY3OCAzMi4wMDY4IDExNi4wMDcgMzIuMDA2OEMxMTcuMzM2IDMyLjAwNjggMTE4LjU4MyAzMS44ODE0IDExOS44MzYgMzEuNjM0MkMxMjEuMDkgMzEuMzgzNiAxMjIuMjA0IDMwLjk1MzQgMTIzLjE3OCAzMC4zMzdDMTI0LjE1MyAyOS43MjA2IDEyNC45NDMgMjguOTA3NyAxMjUuNTQ2IDI3Ljg5NUMxMjYuMTQ5IDI2Ljg4MjMgMTI2LjQ1MyAyNS42MjkxIDEyNi40NTMgMjQuMTMyMUMxMjYuNDUzIDIzLjA3NTMgMTI2LjI0NSAyMi4xODggMTI1LjgzMiAyMS40Njk5QzEyNS40MiAyMC43NTE5IDEyNC44NzIgMjAuMTQ5IDEyNC4xOTQgMTkuNjY0N0wxMjQuMTg3IDE5LjY1NDVaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMTM0Ljg4OCAyMC44NDM0QzEzMS43OTIgMjAuODQzNCAxMjkuMjc3IDIzLjMzOTYgMTI5LjI3NyAyNi40MjE3QzEyOS4yNzcgMjkuNTAzOCAxMzEuNzg4IDMyIDEzNC44ODggMzJDMTM3Ljk4OSAzMiAxNDAuNSAyOS41MDM4IDE0MC41IDI2LjQyMTdDMTQwLjUgMjMuMzM5NiAxMzcuOTg5IDIwLjg0MzQgMTM0Ljg4OCAyMC44NDM0Wk0xMzcuMjE5IDI0Ljg1MzVWMjguMjY0MkgxMzYuMzg4VjI1LjQzOTVMMTMyLjk0MyAyOC44NjM3TDEzMi4zNTcgMjguMjgxMUwxMzUuODA1IDI0Ljg1MzVIMTMyLjk1N1YyNC4wMjcxSDEzNy4yMTlWMjQuODUzNVoiIGZpbGw9ImJsYWNrIi8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMTJfMjM0Ij4KPHJlY3Qgd2lkdGg9IjE0MC41IiBoZWlnaHQ9IjMyIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=';
+const TAGS = ['Grafik','Copywriter','CEO','Art Director','Analytička','Analytička 1','Analytička 2'];
+let state = load();
+function normTag(p){ const m = TAGS.find(t => t.toLowerCase() === String(p||'').trim().toLowerCase()); return m || String(p||'').trim(); }
+function normalizeWorkers(){ state.workers.forEach(w => {
+  if (!Array.isArray(w.roles)) w.roles = w.position ? [w.position] : [];
+  w.roles = w.roles.map(normTag).filter(Boolean).filter((t,i,a)=>a.indexOf(t)===i).slice(0,3);
+  delete w.position;
+}); }
+normalizeWorkers();
+const MAX_ROLES = 3;
+let view = { screen: 'list', id: null, tag: null };
+function tagPill(t, cls=''){ return t ? `<span class="tagpill ${cls}">${esc(t)}</span>` : ''; }
+function setTag(t){ view.tag = (view.tag === t) ? null : t; render(); }
+
+function load(){
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && Array.isArray(s.workers)) return s; } catch(e){}
+  return { workers: [] };
+}
+let storageOk = true;
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
+  catch(e){ storageOk = false; showWarn(); }
+}
+function showWarn(){
+  const b = document.getElementById('warn'); if (b) b.classList.remove('hidden');
+}
+function q(el, name){ return el.querySelector('[name="'+name+'"]'); }
+/* vlastní dialog místo confirm/alert (ty v některých náhledech nefungují) */
+function ask(msg, okLabel='Smazat', onlyOk=false){
+  return new Promise(res => {
+    const o = document.createElement('div'); o.className = 'overlay';
+    o.innerHTML = `<div class="modal" style="max-width:400px"><div style="font-size:18px;font-weight:700;line-height:1.35">${esc(msg)}</div>
+      <div class="modal-actions" style="justify-content:flex-end">
+        ${onlyOk ? '' : '<button type="button" class="btn-text" data-a="0">Zrušit</button>'}
+        <button type="button" class="btn-solid" data-a="1">${esc(okLabel)}</button></div></div>`;
+    o.addEventListener('click', ev => { const a = ev.target.closest('[data-a]'); if (a){ o.remove(); res(a.dataset.a === '1'); } });
+    document.body.appendChild(o);
+  });
+}
+/* odeslání „formulářů“ přes tlačítko nebo Enter */
+function submitForm(form){
+  const code = form.getAttribute('data-submit'); if (!code) return;
+  new Function('event', code).call(form, { preventDefault(){}, target: form });
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-go]'); if (!b) return;
+  const form = b.closest('[data-form]'); if (form){ e.stopPropagation(); submitForm(form); }
+}, true);
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  const form = e.target.closest && e.target.closest('[data-form]');
+  if (form && e.target.tagName === 'INPUT'){ e.preventDefault(); submitForm(form); }
+});
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function total(w){ return (w.logs||[]).reduce((a,l) => a + (+l.hours||0), 0); }
+function fmtH(n){ return (Math.round(n*100)/100).toLocaleString('cs-CZ'); }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
+function initials(n){ return (n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); }
+function avatar(w, cls=''){
+  return w.photo ? `<img class="avatar ${cls}" src="${w.photo}" alt="">` : `<div class="avatar ${cls}">${esc(initials(w.name))}</div>`;
+}
+function stars(r){ let s=''; for(let i=1;i<=5;i++) s += i<=r ? '★' : '<span class="off">★</span>'; return `<span class="stars">${s}</span>`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function parseHours(v){ const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : NaN; }
+function find(id){ return state.workers.find(w => w.id === id); }
+
+let mode = 'hours';
+try { mode = localStorage.getItem(KEY+'-mode') || 'hours'; } catch(e){}
+async function setMode(m){
+  if (mode === 'docs' && m !== 'docs' && draft && isDirty() && !await ask('Máš neuložené změny v dokladu. Opravdu odejít?', 'Odejít')) return;
+  if (m !== 'docs') { draft = null; docView.screen = 'list'; }
+  mode = m; try { localStorage.setItem(KEY+'-mode', m); } catch(e){}
+  if (m === 'hours') view.screen = 'list';
+  render(); window.scrollTo(0,0);
+}
+function nav(){
+  return `<nav class="topnav">
+    <img class="logo-img" src="${LOGO_SRC}" alt="Hlavas." onclick="setMode('hours')" style="cursor:pointer">
+    <div class="menu">
+      <button class="${mode==='hours'?'on':''}" onclick="setMode('hours')">Výkaz hodin</button>
+      <button class="${mode==='docs'?'on':''}" onclick="setMode('docs')">Ceníky a faktury</button>
+    </div>
+  </nav>`;
+}
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = nav() + (mode === 'docs' ? renderDocs()
+    : view.screen === 'detail' && find(view.id) ? renderDetail(find(view.id)) : renderList());
+}
+
+function footer(){
+  return `<footer>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-text" onclick="exportData()">Exportovat zálohu</button>
+      <button class="btn-text" onclick="document.getElementById('importFile').click()">Načíst zálohu</button>
+    </div>
+  </footer>`;
+}
+
+function renderList(){
+  const all = state.workers;
+  const tagsInUse = [...TAGS, ...all.flatMap(w=>w.roles||[]).filter(p => p && !TAGS.includes(p))].filter((t,i,a)=>a.indexOf(t)===i);
+  if (view.tag && !tagsInUse.includes(view.tag)) view.tag = null;
+  const ws = view.tag ? all.filter(w => (w.roles||[]).includes(view.tag)) : all;
+  const sum = ws.reduce((a,w)=>a+total(w),0);
+  const hoursOf = t => all.filter(w=>(w.roles||[]).includes(t)).reduce((a,w)=>a+total(w),0);
+  const filters = `<div class="filters">
+      <button class="chip ${!view.tag?'on':''}" onclick="setTag(null)">Vše <span>${fmtH(all.reduce((a,w)=>a+total(w),0))} h</span></button>
+      ${tagsInUse.map(t => `<button class="chip ${view.tag===t?'on':''}" onclick="setTag('${esc(t).replace(/'/g,'&#39;')}')">${esc(t)} <span>${fmtH(hoursOf(t))} h</span></button>`).join('')}
+    </div>`;
+  const cards = ws.map(w => `
+    <div class="w" onclick="openDetail('${w.id}')">
+      <div class="w-top">
+        ${avatar(w)}
+        <div style="flex:1;min-width:0">
+          <div class="w-name">${esc(w.name)}</div>
+          <div class="pills">${(w.roles||[]).map(t=>tagPill(t)).join('')}</div>
+        </div>
+      </div>
+      <div class="w-mid">
+        <div class="hours">${fmtH(total(w))}<small>h</small></div>
+        ${stars(w.rating||0)}
+      </div>
+      <div data-form class="quick" onclick="event.stopPropagation()" data-submit="quickAdd(event,'${w.id}')">
+        <input class="h" name="hours" placeholder="Hodiny" inputmode="decimal" autocomplete="off">
+        <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off">
+        <button class="btn-round sm" type="button" data-go title="Přidat hodiny">${ICON_PLUS}</button>
+      </div>
+    </div>`).join('');
+  return `
+    <header>
+      <div>
+        <h1>Výkaz hodin</h1>
+      </div>
+      <div class="add-row" onclick="openEdit()">
+        <button class="btn-round">${ICON_PLUS}</button><b>Přidat člena</b>
+      </div>
+    </header>
+    ${all.length ? `
+      ${filters}
+      <div class="stats">
+        <div class="stat"><div class="num">${ws.length}</div><div class="lbl">${view.tag ? 'lidí s tagem ' + esc(view.tag) : 'členů týmu'}</div></div>
+        <div class="stat"><div class="num">${fmtH(sum)} h</div><div class="lbl">${view.tag ? 'odpracováno · ' + esc(view.tag) : 'odpracováno celkem'}</div></div>
+      </div>
+      ${ws.length ? `<div class="grid">${cards}</div>` : `<div class="empty">S tímto tagem zatím nikdo není.</div>`}`
+    : `<div class="empty">Zatím tu nikdo není. Klikni na červené plus a přidej prvního člena týmu.</div>`}
+    ${footer()}`;
+}
+
+function renderNotes(w, kind, title, color){
+  const list = w[kind] || [];
+  return `<div class="panel">
+    <div class="panel-head">
+      <h3><span class="tag" style="background:${color}"></span>${title}</h3>
+      <button class="btn-round sm" onclick="showAdder('${kind}')" title="Přidat">${ICON_PLUS}</button>
+    </div>
+    <ul class="items">
+      ${list.length ? list.map(it => `<li><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.date)}</span><button class="x" title="Smazat" onclick="delNote('${kind}','${it.id}')">×</button></li>`).join('')
+        : `<li class="note-empty">Zatím nic. Přidej přes plus.</li>`}
+    </ul>
+    <div data-form class="adder ${list.length ? 'hidden' : ''}" id="adder-${kind}" data-submit="addNote(event,'${kind}')">
+      <input name="text" placeholder="Napiš a potvrď Enterem" autocomplete="off">
+      <button class="btn-solid" type="button" data-go>Uložit</button>
+    </div>
+  </div>`;
+}
+
+function renderDetail(w){
+  const logs = [...(w.logs||[])].sort((a,b) => (b.date||'').localeCompare(a.date||'') || b.created - a.created);
+  return `
+    <div class="back" onclick="goList()"><button class="btn-round sm">${ICON_ARROW.replace('M6 18L18 6M8 6h10v10','M4 12h16M13 5l7 7-7 7')}</button>Zpět na přehled</div>
+    <div class="profile">
+      ${avatar(w,'lg')}
+      <div class="info">
+        <h2>${esc(w.name)}</h2>
+        <div class="pills">${(w.roles||[]).map(t=>tagPill(t,'lg')).join('')}</div>
+        <div class="meta">
+          <div class="stat"><div class="num">${fmtH(total(w))} h</div><div class="lbl">odpracováno celkem</div></div>
+          <div class="stat">
+            <div class="rate">${[1,2,3,4,5].map(i=>`<button class="${i<=(w.rating||0)?'on':''}" onclick="setRating(${i})" title="${i} z 5">★</button>`).join('')}</div>
+            <div class="lbl">moje hodnocení</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-self:flex-start;flex-wrap:wrap">
+        <button class="btn-text" onclick="openEdit('${w.id}')">Upravit</button>
+      </div>
+    </div>
+    <div class="cols">
+      ${renderNotes(w,'positives','Pozitivní','#2E9E5B')}
+      ${renderNotes(w,'negatives','Negativní','#D63333')}
+      <div class="panel full">
+        <div class="panel-head">
+          <h3>Výkazy hodin</h3>
+        </div>
+        <ul class="items">
+          ${logs.length ? logs.map(l => `<li><span class="t"><b>${fmtH(+l.hours)} h</b>${l.note ? ' · ' + esc(l.note) : ''}</span><span class="d">${fmtDate(l.date)}</span><button class="x" title="Smazat" onclick="delLog('${l.id}')">×</button></li>`).join('')
+            : `<li class="note-empty">Zatím žádné hodiny.</li>`}
+        </ul>
+        <div data-form class="log-form" data-submit="addLog(event)">
+          <input type="date" name="date" value="${today()}">
+          <input name="hours" placeholder="Hodiny" inputmode="decimal" autocomplete="off">
+          <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off">
+          <button class="btn-round sm" type="button" data-go title="Přidat hodiny">${ICON_PLUS}</button>
+        </div>
+      </div>
+    </div>
+    ${footer()}`;
+}
+
+/* actions */
+function openDetail(id){ view = {screen:'detail', id}; render(); window.scrollTo(0,0); }
+function goList(){ view = {screen:'list', id:null}; render(); }
+
+function quickAdd(e, id){
+  e.preventDefault();
+  const f = e.target, h = parseHours(q(f,'hours').value);
+  if (!h){ q(f,'hours').focus(); toast('Zadej počet hodin'); return; }
+  const w = find(id);
+  w.logs = w.logs || [];
+  w.logs.push({ id: uid(), date: today(), hours: h, note: q(f,'note').value.trim(), created: Date.now() });
+  save(); render(); toast(`+${fmtH(h)} h · ${w.name}`);
+}
+function addLog(e){
+  e.preventDefault();
+  const f = e.target, h = parseHours(q(f,'hours').value);
+  if (!h){ q(f,'hours').focus(); toast('Zadej počet hodin'); return; }
+  const w = find(view.id);
+  w.logs = w.logs || [];
+  w.logs.push({ id: uid(), date: q(f,'date').value || today(), hours: h, note: q(f,'note').value.trim(), created: Date.now() });
+  save(); render(); toast(`+${fmtH(h)} h uloženo`);
+}
+async function delLog(lid){
+  if (!await ask('Smazat tento záznam hodin?')) return;
+  const w = find(view.id); w.logs = w.logs.filter(l => l.id !== lid); save(); render();
+}
+function showAdder(kind){
+  const f = document.getElementById('adder-'+kind); f.classList.remove('hidden'); q(f,'text').focus();
+}
+function addNote(e, kind){
+  e.preventDefault();
+  const text = q(e.target,'text').value.trim(); if (!text) return;
+  const w = find(view.id); w[kind] = w[kind] || [];
+  w[kind].push({ id: uid(), text, date: today() });
+  save(); render(); showAdder(kind);
+}
+async function delNote(kind, nid){
+  if (!await ask('Smazat tuto poznámku?')) return;
+  const w = find(view.id); w[kind] = w[kind].filter(n => n.id !== nid); save(); render();
+}
+function setRating(r){
+  const w = find(view.id); w.rating = (w.rating === r) ? 0 : r; save(); render();
+}
+
+/* add / edit modal */
+let pendingPhoto = null;
+function openEdit(id){
+  const w = id ? find(id) : { name:'', roles: view.tag ? [view.tag] : [], photo:null };
+  pendingPhoto = w.photo || null;
+  const o = document.createElement('div');
+  o.className = 'overlay'; o.id = 'overlay';
+  o.innerHTML = `<div data-form class="modal" data-submit="saveWorker(event, ${id ? `'${id}'` : 'null'})">
+    <h2>${id ? 'Upravit člena' : 'Nový člen týmu'}</h2>
+    <div class="field"><label>Fotka (nepovinné)</label></div>
+    <div class="field photo-pick">
+      <div id="photoPrev">${avatar({name:w.name, photo:pendingPhoto})}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn-text" onclick="document.getElementById('photoIn').click()">Nahrát fotku</button>
+        <button type="button" class="btn-text" onclick="pendingPhoto=null;document.getElementById('photoPrev').innerHTML=avatar({name:document.querySelector('#overlay [name=name]').value})">Odebrat</button>
+      </div>
+      <input type="file" id="photoIn" accept="image/*" class="hidden" onchange="pickPhoto(this)">
+    </div>
+    <div class="field"><label>Jméno a příjmení</label><input name="name" value="${esc(w.name)}" autocomplete="off"></div>
+    <div class="field"><label>Role (max. 3)</label>
+      <div id="roleList">${(w.roles && w.roles.length ? w.roles : ['']).map(r => roleRow(r)).join('')}</div>
+      <div class="add-row" id="roleAdd" style="margin-top:4px" onclick="addRoleRow()"><button type="button" class="btn-round sm">${ICON_PLUS}</button><b style="font-size:15px">Přidat roli</b></div>
+    </div>
+    <div class="modal-actions">
+      <div>${id ? `<button type="button" class="btn-text danger" onclick="delWorker('${id}')">Smazat člena</button>` : ''}</div>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
+        <button type="button" data-go class="btn-solid">Uložit</button>
+      </div>
+    </div>
+  </div>`;
+  o.addEventListener('mousedown', ev => { if (ev.target === o) closeModal(); });
+  document.body.appendChild(o);
+  o.querySelector('[name=name]').focus();
+  syncRoleAdd();
+}
+function roleRow(r){
+  const opts = [...TAGS, ...(r && !TAGS.includes(r) ? [r] : [])];
+  return `<div class="role-row"><select name="role"><option value="">Vyber roli</option>${opts.map(t => `<option ${t===r?'selected':''}>${esc(t)}</option>`).join('')}</select>
+    <button type="button" class="x" title="Odebrat roli" onclick="this.parentNode.remove();syncRoleAdd()">×</button></div>`;
+}
+function addRoleRow(){
+  const l = document.getElementById('roleList');
+  if (l.children.length >= MAX_ROLES) return;
+  l.insertAdjacentHTML('beforeend', roleRow('')); syncRoleAdd();
+  l.lastElementChild.querySelector('select').focus();
+}
+function syncRoleAdd(){
+  const l = document.getElementById('roleList'), a = document.getElementById('roleAdd');
+  if (l && a) a.classList.toggle('hidden', l.children.length >= MAX_ROLES);
+}
+function readRoles(f){
+  return [...f.querySelectorAll('[name=role]')].map(s => s.value).filter(Boolean).filter((t,i,a)=>a.indexOf(t)===i).slice(0, MAX_ROLES);
+}
+function closeModal(){ const o = document.getElementById('overlay'); if (o) o.remove(); }
+function pickPhoto(input){
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // zmenšení a ořez na čtverec, ať se data vejdou do úložiště
+      const S = 320, c = document.createElement('canvas'); c.width = c.height = S;
+      const m = Math.min(img.width, img.height);
+      c.getContext('2d').drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, S, S);
+      pendingPhoto = c.toDataURL('image/jpeg', 0.85);
+      document.getElementById('photoPrev').innerHTML = avatar({photo:pendingPhoto});
+    };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+function saveWorker(e, id){
+  e.preventDefault();
+  const f = e.target, name = q(f,'name').value.trim(); if (!name){ q(f,'name').focus(); toast('Vyplň jméno'); return; }
+  if (id){ const w = find(id); w.name = name; w.roles = readRoles(f); w.photo = pendingPhoto; }
+  else state.workers.push({ id: uid(), name, roles: readRoles(f), photo: pendingPhoto, rating: 0, logs: [], positives: [], negatives: [] });
+  save(); closeModal(); render(); toast('Uloženo');
+}
+async function delWorker(id){
+  const w = find(id);
+  if (!await ask(`Opravdu smazat ${w.name} včetně všech hodin a poznámek?`)) return;
+  state.workers = state.workers.filter(x => x.id !== id);
+  save(); closeModal(); goList();
+}
+
+/* backup */
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `hlavas-tym-zaloha-${today()}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('Záloha stažena');
+}
+document.getElementById('importFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = async () => {
+    e.target.value = '';
+    let data;
+    try { data = JSON.parse(r.result); if (!data || !Array.isArray(data.workers)) throw 0; }
+    catch(err){ ask('Tento soubor není platná záloha.', 'OK', true); return; }
+    if (!await ask('Načíst zálohu? Současná data se nahradí daty ze zálohy.', 'Načíst')) return;
+    state = data; normalizeWorkers(); ensureDocs(); save(); goList(); toast('Záloha načtena');
+  };
+  r.readAsText(file);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ================= Ceníky a faktury ================= */
+const PARTY_FIELDS = [['name','Název / jméno'],['ico','IČO'],['address','Adresa'],['email','E-mail'],['phone','Telefon']];
+const DEFAULT_ME = { name:'Hlavas s.r.o.', ico:'12345678', address:'Ukázková 123, 110 00 Praha 1', email:'info@hlavas.cz', phone:'+420 123 456 789', account:'123456789/0100' };
+let docView = { screen:'list', q:'', type:'all', sort:'name-asc' };
+let draft = null;
+
+function ensureDocs(){
+  if (!Array.isArray(state.docs)) state.docs = [];
+  if (!state.me) state.me = { ...DEFAULT_ME };
+}
+function money(n){ return (Math.round((+n||0)*100)/100).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' Kč'; }
+function num(v){ if (v === '' || v == null) return NaN; const n = parseFloat(String(v).replace(/\s/g,'').replace(',', '.')); return isFinite(n) ? n : NaN; }
+function itemTotal(it){
+  const h = num(it.hours), r = num(it.rate);
+  if (h > 0 && r > 0) return h * r;
+  const t = num(it.total); return isFinite(t) ? t : 0;
+}
+function docTotal(d){ return (d.items||[]).reduce((a,it)=>a+itemTotal(it),0); }
+function addDays(iso, n){ const d = new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function nextInvoiceNumber(){
+  const y = String(new Date().getFullYear());
+  const used = state.docs.filter(d => d.type==='faktura' && String(d.number||'').startsWith(y) && (!draft || d.id !== draft.id))
+    .map(d => parseInt(String(d.number).slice(4),10)).filter(n => isFinite(n));
+  return y + String((used.length ? Math.max(...used) : 0) + 1).padStart(3,'0');
+}
+function emptyParty(){ return { name:'', ico:'', address:'', email:'', phone:'' }; }
+function newDraft(type){
+  const d = { id:null, type, name:'', customer: emptyParty(), items:[{ id:uid(), name:'', hours:'', rate:'', total:'' }] };
+  if (type === 'faktura') applyInvoiceDefaults(d);
+  return d;
+}
+function applyInvoiceDefaults(d){
+  if (!d.number) d.number = nextInvoiceNumber();
+  if (!d.issueDate) d.issueDate = today();
+  if (!d.dueDate) d.dueDate = addDays(d.issueDate, 14);
+  if (!d.supplier) { const { account, ...me } = state.me; d.supplier = { ...me }; }
+  if (d.account == null || d.account === '') d.account = state.me.account || '';
+}
+
+/* --- navigace --- */
+function openDoc(id){
+  const d = state.docs.find(x => x.id === id); if (!d) return;
+  draft = JSON.parse(JSON.stringify(d)); docView.screen = 'edit'; render(); window.scrollTo(0,0);
+}
+function newDoc(type){ draft = newDraft(type); docView.screen = 'edit'; render(); window.scrollTo(0,0); }
+async function backToDocs(){
+  if (draft && isDirty() && !await ask('Máš neuložené změny. Opravdu odejít bez uložení?', 'Odejít')) return;
+  draft = null; docView.screen = 'list'; render();
+}
+function isDirty(){
+  if (!draft) return false;
+  if (!draft.id) return !!(draft.name || draft.items.some(it => it.name || it.hours || it.rate || it.total));
+  const o = state.docs.find(x => x.id === draft.id);
+  return !o || JSON.stringify(o) !== JSON.stringify(draft);
+}
+
+/* --- seznam --- */
+function renderDocs(){
+  ensureDocs();
+  if (docView.screen === 'edit' && draft) return renderDocEditor();
+  return `
+    <header>
+      <div><h1>Ceníky a faktury</h1></div>
+      <div style="display:flex;gap:28px;flex-wrap:wrap">
+        <div class="add-row" onclick="newDoc('cenik')"><button class="btn-round">${ICON_PLUS}</button><b>Nový ceník</b></div>
+        <div class="add-row" onclick="newDoc('faktura')"><button class="btn-round">${ICON_PLUS}</button><b>Nová faktura</b></div>
+      </div>
+    </header>
+    <div class="doc-tools">
+      <input id="docSearch" placeholder="Hledat podle klíčových slov…" value="${esc(docView.q)}" oninput="docView.q=this.value;refreshDocRows()" autocomplete="off">
+      <div class="filters" style="margin:0">
+        ${[['all','Vše'],['cenik','Ceníky'],['faktura','Faktury']].map(([k,l]) => `<button class="chip ${docView.type===k?'on':''}" onclick="docView.type='${k}';render()">${l}</button>`).join('')}
+      </div>
+      <select onchange="docView.sort=this.value;refreshDocRows()" style="width:auto">
+        <option value="name-asc" ${docView.sort==='name-asc'?'selected':''}>Název A–Z</option>
+        <option value="name-desc" ${docView.sort==='name-desc'?'selected':''}>Název Z–A</option>
+        <option value="new" ${docView.sort==='new'?'selected':''}>Nejnovější</option>
+      </select>
+      <button class="btn-text" onclick="editMe()">Moje údaje</button>
+    </div>
+    <div id="docRows">${docRows()}</div>
+    ${footer()}`;
+}
+function refreshDocRows(){ const el = document.getElementById('docRows'); if (el) el.innerHTML = docRows(); }
+function docRows(){
+  const q = docView.q.trim().toLowerCase();
+  let list = state.docs.filter(d => docView.type === 'all' || d.type === docView.type);
+  if (q) {
+    const words = q.split(/\s+/);
+    list = list.filter(d => {
+      const hay = [d.name, d.number, d.customer && d.customer.name, d.customer && d.customer.ico, ...(d.items||[]).map(i=>i.name), d.type==='faktura'?'faktura':'ceník'].join(' ').toLowerCase();
+      return words.every(w => hay.includes(w));
+    });
+  }
+  const nm = d => (d.name || '').toLowerCase();
+  list.sort(docView.sort === 'new' ? (a,b) => (b.updated||0) - (a.updated||0)
+          : docView.sort === 'name-desc' ? (a,b) => nm(b).localeCompare(nm(a), 'cs')
+          : (a,b) => nm(a).localeCompare(nm(b), 'cs'));
+  if (!state.docs.length) return `<div class="empty">Zatím žádné ceníky ani faktury. Vytvoř první přes červené plus.</div>`;
+  if (!list.length) return `<div class="empty">Nic neodpovídá hledání.</div>`;
+  return `<div class="doc-list">${list.map(d => `
+    <div class="doc-row" onclick="openDoc('${d.id}')">
+      <span class="tagpill ${d.type==='faktura'?'red':''}">${d.type==='faktura' ? 'Faktura' : 'Ceník'}</span>
+      <div class="doc-main">
+        <div class="w-name">${esc(d.name || 'Bez názvu')}</div>
+        <div class="w-pos">${[d.type==='faktura' ? 'č. ' + esc(d.number) : '', d.customer && d.customer.name ? esc(d.customer.name) : '', fmtDate((d.issueDate || new Date(d.updated||Date.now()).toISOString().slice(0,10)))].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="doc-sum">${money(docTotal(d))}</div>
+      <div class="doc-actions" onclick="event.stopPropagation()">
+        <button class="btn-text" onclick="printDoc('${d.id}')">PDF</button>
+        ${d.type==='faktura' ? `<button class="btn-text" onclick="exportIsdoc('${d.id}')">ISDOC</button>` : ''}
+        <button class="btn-text" onclick="dupDoc('${d.id}')">Kopie</button>
+        <button class="x" title="Smazat" onclick="delDoc('${d.id}')">×</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+async function delDoc(id){
+  const d = state.docs.find(x => x.id === id);
+  if (!await ask(`Smazat ${d.type==='faktura'?'fakturu':'ceník'} „${d.name || 'Bez názvu'}“?`)) return;
+  state.docs = state.docs.filter(x => x.id !== id); save(); render();
+}
+function dupDoc(id){
+  const d = JSON.parse(JSON.stringify(state.docs.find(x => x.id === id)));
+  d.id = null; d.name = (d.name || 'Bez názvu') + ' (kopie)';
+  if (d.type === 'faktura'){ d.number = ''; d.issueDate = ''; d.dueDate = ''; draft = d; applyInvoiceDefaults(d); }
+  draft = d; docView.screen = 'edit'; render(); window.scrollTo(0,0);
+}
+
+/* --- editor --- */
+function partyBlock(path, title, p, placeholders){
+  return `<div class="panel">
+    <div class="panel-head"><h3>${title}</h3></div>
+    ${PARTY_FIELDS.map(([k,l]) => `<div class="field"><label>${l}</label><input value="${esc(p[k])}" placeholder="${esc(placeholders ? placeholders[k] : '')}" oninput="setDraft('${path}.${k}', this.value)" autocomplete="off"></div>`).join('')}
+  </div>`;
+}
+const SAMPLE_CUSTOMER = { name:'Např. Firma s.r.o.', ico:'87654321', address:'Ulice 1, 602 00 Brno', email:'kontakt@firma.cz', phone:'+420 987 654 321' };
+function renderDocEditor(){
+  const d = draft, inv = d.type === 'faktura';
+  return `
+    <div class="back" onclick="backToDocs()"><button class="btn-round sm">${ICON_ARROW.replace('M6 18L18 6M8 6h10v10','M4 12h16M13 5l7 7-7 7')}</button>Zpět na seznam</div>
+    <div class="seg">
+      <button class="${!inv?'on':''}" onclick="setDocType('cenik')">Ceník</button>
+      <button class="${inv?'on':''}" onclick="setDocType('faktura')">Faktura</button>
+    </div>
+    <div class="field" style="max-width:640px;margin-top:24px">
+      <label>${inv ? 'Název faktury' : 'Název ceníku'}</label>
+      <input class="big-input" value="${esc(d.name)}" placeholder="${inv ? 'Např. Kampaň podzim 2026' : 'Např. Ceník služeb 2026'}" oninput="setDraft('name', this.value)" autocomplete="off">
+    </div>
+    ${inv ? `<div class="inv-meta">
+      <div class="field"><label>Číslo faktury</label><input value="${esc(d.number)}" oninput="setDraft('number', this.value)"></div>
+      <div class="field"><label>Datum vystavení</label><input type="date" value="${esc(d.issueDate)}" oninput="setDraft('issueDate', this.value)"></div>
+      <div class="field"><label>Datum splatnosti</label><input type="date" value="${esc(d.dueDate)}" oninput="setDraft('dueDate', this.value)"></div>
+      <div class="field"><label>Číslo účtu</label><input value="${esc(d.account)}" oninput="setDraft('account', this.value)"></div>
+    </div>` : ''}
+    <div class="cols" style="margin-top:24px">
+      ${inv ? partyBlock('supplier','Dodavatel', d.supplier) : ''}
+      ${partyBlock('customer', inv ? 'Odběratel' : 'Odběratel (nepovinné)', d.customer, SAMPLE_CUSTOMER)}
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="panel-head"><h3>Položky</h3><button class="btn-round sm" onclick="addItem()" title="Přidat položku">${ICON_PLUS}</button></div>
+      <div class="items-grid head"><span>Název položky</span><span>Počet hodin</span><span>Cena za hodinu</span><span>Celkem (Kč)</span><span></span></div>
+      <div id="itemRows">${d.items.map((it,i) => itemRow(it,i)).join('')}</div>
+      <div class="add-row" style="margin-top:14px" onclick="addItem()"><button class="btn-round sm">${ICON_PLUS}</button><b style="font-size:15px">Přidat položku</b></div>
+      <div class="grand"><span>Celkem</span><span id="grandTotal">${money(docTotal(d))}</span></div>
+      <div class="hint">Vyplň buď počet hodin a cenu za hodinu (celkem se dopočítá), nebo jen částku celkem.</div>
+    </div>
+    <div class="editor-actions">
+      ${d.id ? `<button class="btn-text danger" onclick="delDocFromEditor()">Smazat</button>` : '<span></span>'}
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${inv ? `<button class="btn-text" onclick="saveDraft('isdoc')">Uložit a export ISDOC</button>` : ''}
+        <button class="btn-text" onclick="saveDraft(true)">Uložit a export do PDF</button>
+        <button class="btn-solid" onclick="saveDraft()">${inv ? 'Uložit fakturu' : 'Uložit ceník'}</button>
+      </div>
+    </div>
+    ${footer()}`;
+}
+function itemRow(it, i){
+  const auto = num(it.hours) > 0 && num(it.rate) > 0;
+  return `<div class="items-grid" data-i="${i}">
+    <input value="${esc(it.name)}" placeholder="Např. Grafický návrh" oninput="setItem(${i},'name',this.value)" autocomplete="off">
+    <input value="${esc(it.hours)}" placeholder="0" inputmode="decimal" oninput="setItem(${i},'hours',this.value)" autocomplete="off">
+    <input value="${esc(it.rate)}" placeholder="0" inputmode="decimal" oninput="setItem(${i},'rate',this.value)" autocomplete="off">
+    <input class="tot" value="${auto ? esc(fmtNum(itemTotal(it))) : esc(it.total)}" placeholder="0" inputmode="decimal" ${auto ? 'readonly title="Dopočítáno z hodin × ceny"' : ''} oninput="setItem(${i},'total',this.value)" autocomplete="off">
+    <button class="x" title="Odebrat položku" onclick="delItem(${i})">×</button>
+  </div>`;
+}
+function fmtNum(n){ return (Math.round(n*100)/100).toLocaleString('cs-CZ',{maximumFractionDigits:2}); }
+function setDraft(path, v){
+  const parts = path.split('.'); let o = draft;
+  while (parts.length > 1) o = o[parts.shift()];
+  o[parts[0]] = v;
+  if (path === 'issueDate' && v && !draft._dueTouched) { draft.dueDate = addDays(v, 14); const el = document.querySelector('input[oninput*="dueDate"]'); if (el) el.value = draft.dueDate; }
+  if (path === 'dueDate') draft._dueTouched = true;
+}
+function setItem(i, k, v){
+  draft.items[i][k] = v;
+  const row = document.querySelector(`.items-grid[data-i="${i}"]`), it = draft.items[i];
+  const auto = num(it.hours) > 0 && num(it.rate) > 0, tot = row.querySelector('.tot');
+  if (k !== 'total'){
+    if (auto){ tot.value = fmtNum(itemTotal(it)); tot.readOnly = true; }
+    else if (tot.readOnly){ tot.readOnly = false; tot.value = it.total || ''; }
+  }
+  document.getElementById('grandTotal').textContent = money(docTotal(draft));
+}
+function addItem(){
+  draft.items.push({ id:uid(), name:'', hours:'', rate:'', total:'' });
+  document.getElementById('itemRows').insertAdjacentHTML('beforeend', itemRow(draft.items[draft.items.length-1], draft.items.length-1));
+  document.querySelector(`.items-grid[data-i="${draft.items.length-1}"] input`).focus();
+}
+function delItem(i){
+  draft.items.splice(i,1);
+  if (!draft.items.length) draft.items.push({ id:uid(), name:'', hours:'', rate:'', total:'' });
+  document.getElementById('itemRows').innerHTML = draft.items.map((it,j) => itemRow(it,j)).join('');
+  document.getElementById('grandTotal').textContent = money(docTotal(draft));
+}
+function setDocType(t){
+  if (draft.type === t) return;
+  draft.type = t;
+  if (t === 'faktura') applyInvoiceDefaults(draft);
+  render();
+}
+function cleanDraft(){
+  const d = JSON.parse(JSON.stringify(draft));
+  delete d._dueTouched;
+  d.items = d.items.filter(it => it.name || it.hours || it.rate || it.total);
+  d.items.forEach(it => { it.computed = itemTotal(it); });
+  return d;
+}
+function saveDraft(andPrint){
+  const d = cleanDraft();
+  if (d.type === 'faktura' && state.docs.some(x => x.id !== d.id && x.type === 'faktura' && x.number === d.number)){
+    ask(`Faktura s číslem ${d.number} už existuje. Změň prosím číslo.`, 'OK', true); return;
+  }
+  d.updated = Date.now();
+  if (!d.id){ d.id = uid(); d.created = d.updated; state.docs.push(d); }
+  else { const i = state.docs.findIndex(x => x.id === d.id); if (i < 0) state.docs.push(d); else state.docs[i] = d; }
+  save();
+  draft = JSON.parse(JSON.stringify(d));
+  if (!draft.items.length) draft.items.push({ id:uid(), name:'', hours:'', rate:'', total:'' });
+  render(); toast(d.type === 'faktura' ? 'Faktura uložena' : 'Ceník uložen');
+  if (andPrint === 'isdoc') exportIsdoc(d.id); else if (andPrint) printDoc(d.id);
+}
+async function delDocFromEditor(){
+  if (!await ask('Opravdu smazat tento doklad?')) return;
+  state.docs = state.docs.filter(x => x.id !== draft.id); save();
+  draft = null; docView.screen = 'list'; render();
+}
+
+/* --- moje údaje (výchozí dodavatel) --- */
+function editMe(){
+  const m = state.me;
+  const o = document.createElement('div'); o.className = 'overlay'; o.id = 'overlay';
+  o.innerHTML = `<div class="modal" data-form data-submit="saveMe(event)">
+    <h2>Moje údaje</h2>
+    <div class="sub" style="margin:-12px 0 20px">Předvyplní se jako dodavatel do každé nové faktury.</div>
+    ${PARTY_FIELDS.map(([k,l]) => `<div class="field"><label>${l}</label><input name="${k}" value="${esc(m[k])}" autocomplete="off"></div>`).join('')}
+    <div class="field"><label>Číslo účtu</label><input name="account" value="${esc(m.account)}" autocomplete="off"></div>
+    <div class="modal-actions" style="justify-content:flex-end">
+      <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
+      <button type="button" class="btn-solid" data-go>Uložit</button>
+    </div></div>`;
+  o.addEventListener('mousedown', ev => { if (ev.target === o) closeModal(); });
+  document.body.appendChild(o);
+}
+function saveMe(e){
+  const f = e.target;
+  [...PARTY_FIELDS.map(x=>x[0]), 'account'].forEach(k => state.me[k] = q(f,k).value.trim());
+  save(); closeModal(); toast('Údaje uloženy');
+}
+
+/* --- PDF (tisk) --- */
+function partyHtml(title, p){
+  if (!p || !PARTY_FIELDS.some(([k]) => p[k])) return '';
+  return `<div class="p-party"><div class="p-label">${title}</div>
+    ${p.name ? `<div class="p-pname">${esc(p.name)}</div>` : ''}
+    ${p.address ? `<div>${esc(p.address)}</div>` : ''}
+    ${p.ico ? `<div>IČO: ${esc(p.ico)}</div>` : ''}
+    ${p.email ? `<div>${esc(p.email)}</div>` : ''}
+    ${p.phone ? `<div>${esc(p.phone)}</div>` : ''}
+  </div>`;
+}
+function printDoc(id){
+  const d = state.docs.find(x => x.id === id); if (!d) return;
+  const inv = d.type === 'faktura';
+  const rows = (d.items||[]).map(it => {
+    const auto = num(it.hours) > 0 && num(it.rate) > 0;
+    return `<tr><td>${esc(it.name)}</td><td class="r">${auto ? fmtNum(num(it.hours)) : ''}</td><td class="r">${auto ? money(num(it.rate)) : ''}</td><td class="r">${money(itemTotal(it))}</td></tr>`;
+  }).join('');
+  const parties = (inv ? partyHtml('Dodavatel', d.supplier) : '') + partyHtml('Odběratel', d.customer);
+  document.getElementById('printArea').innerHTML = `
+    <div class="p-top">
+      <div>
+        <div class="p-kind">${inv ? 'Faktura' : 'Ceník'}</div>
+        <div class="p-title">${inv ? 'č. ' + esc(d.number) : esc(d.name || 'Ceník')}</div>
+        ${inv && d.name ? `<div class="p-sub">${esc(d.name)}</div>` : ''}
+        ${inv ? `<div class="p-dates"><div><span>Datum vystavení</span>${fmtDate(d.issueDate)}</div><div><span>Datum splatnosti</span>${fmtDate(d.dueDate)}</div></div>` : ''}
+      </div>
+      <img class="p-logo" src="${LOGO_SRC}" alt="Hlavas.">
+    </div>
+    ${parties ? `<div class="p-parties">${parties}</div>` : ''}
+    <table class="p-items">
+      <thead><tr><th>Položka</th><th class="r">Hodin</th><th class="r">Cena / hod</th><th class="r">Celkem</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4">Bez položek</td></tr>'}</tbody>
+    </table>
+    <div class="p-total"><span>${inv ? 'Celkem k úhradě' : 'Celkem'}</span><b>${money(docTotal(d))}</b></div>
+    ${inv ? `<div class="p-pay">
+      <div><span>Číslo účtu</span>${esc(d.account || '')}</div>
+      <div><span>Variabilní symbol</span>${esc(d.number)}</div>
+      <div><span>Splatnost</span>${fmtDate(d.dueDate)}</div>
+    </div>` : ''}`;
+  const oldTitle = document.title;
+  document.title = inv ? `Faktura ${d.number}${d.name ? ' - ' + d.name : ''}` : `Ceník - ${d.name || 'bez názvu'}`;
+  setTimeout(() => { window.print(); document.title = oldTitle; }, 50);
+}
+
+/* --- ISDOC 6.0.2 (česká e-faktura) --- */
+function xe(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])); }
+function amt(n){ return (Math.round((+n||0)*100)/100).toFixed(2); }
+function uuid4(){
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().toUpperCase();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x' ? r : (r&3|8)).toString(16); }).toUpperCase();
+}
+/* „Ulice 12, 110 00 Praha 1“ -> části adresy */
+function splitAddress(a){
+  const parts = String(a||'').split(',').map(s => s.trim()).filter(Boolean);
+  let street = parts[0] || '', number = '', zip = '', city = '';
+  const m = street.match(/^(.*?)\s+(\d+[\w/]*)$/); if (m){ street = m[1]; number = m[2]; }
+  const rest = parts.slice(1).join(', ');
+  const z = rest.match(/^(\d{3}\s?\d{2})\s*(.*)$/);
+  if (z){ zip = z[1]; city = z[2]; } else city = rest;
+  return { street, number, zip, city };
+}
+function isdocParty(p){
+  p = p || {}; const a = splitAddress(p.address);
+  const contact = (p.phone || p.email) ? `<Contact>${p.phone ? `<Telephone>${xe(p.phone)}</Telephone>` : ''}${p.email ? `<ElectronicMail>${xe(p.email)}</ElectronicMail>` : ''}</Contact>` : '';
+  return `<Party>
+      <PartyIdentification><ID>${xe(p.ico)}</ID></PartyIdentification>
+      <PartyName><Name>${xe(p.name)}</Name></PartyName>
+      <PostalAddress>
+        <StreetName>${xe(a.street)}</StreetName>
+        <BuildingNumber>${xe(a.number)}</BuildingNumber>
+        <CityName>${xe(a.city)}</CityName>
+        <PostalZone>${xe(a.zip)}</PostalZone>
+        <Country><IdentificationCode>CZ</IdentificationCode><Name>Česká republika</Name></Country>
+      </PostalAddress>
+      ${contact}
+    </Party>`;
+}
+function buildIsdoc(d){
+  const items = (d.items||[]).filter(it => it.name || itemTotal(it));
+  const total = docTotal(d);
+  const acc = String(d.account||'').trim(), am = acc.match(/^([\d-]+)\s*\/\s*(\d{4})$/);
+  const lines = items.map((it,i) => {
+    const auto = num(it.hours) > 0 && num(it.rate) > 0;
+    const qty = auto ? num(it.hours) : 1, price = auto ? num(it.rate) : itemTotal(it), sum = itemTotal(it);
+    return `<InvoiceLine>
+      <ID>${i+1}</ID>
+      <InvoicedQuantity unitCode="${auto ? 'HUR' : 'C62'}">${qty}</InvoicedQuantity>
+      <LineExtensionAmount>${amt(sum)}</LineExtensionAmount>
+      <LineExtensionAmountTaxInclusive>${amt(sum)}</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>0.00</LineExtensionTaxAmount>
+      <UnitPrice>${amt(price)}</UnitPrice>
+      <UnitPriceTaxInclusive>${amt(price)}</UnitPriceTaxInclusive>
+      <ClassifiedTaxCategory><Percent>0</Percent><VATCalculationMethod>0</VATCalculationMethod><VATApplicable>false</VATApplicable></ClassifiedTaxCategory>
+      <Item><Description>${xe(it.name)}</Description></Item>
+    </InvoiceLine>`;
+  }).join('\n    ');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">
+  <DocumentType>1</DocumentType>
+  <ID>${xe(d.number)}</ID>
+  <UUID>${d.uuid}</UUID>
+  <IssuingSystem>Hlavasapp</IssuingSystem>
+  <IssueDate>${xe(d.issueDate)}</IssueDate>
+  <TaxPointDate>${xe(d.issueDate)}</TaxPointDate>
+  <VATApplicable>false</VATApplicable>
+  <ElectronicPossibilityAgreementReference></ElectronicPossibilityAgreementReference>
+  ${d.name ? `<Note>${xe(d.name)}</Note>` : ''}
+  <LocalCurrencyCode>CZK</LocalCurrencyCode>
+  <CurrRate>1</CurrRate>
+  <RefCurrRate>1</RefCurrRate>
+  <AccountingSupplierParty>${isdocParty(d.supplier)}</AccountingSupplierParty>
+  <AccountingCustomerParty>${isdocParty(d.customer)}</AccountingCustomerParty>
+  <InvoiceLines>
+    ${lines}
+  </InvoiceLines>
+  <TaxTotal>
+    <TaxSubTotal>
+      <TaxableAmount>${amt(total)}</TaxableAmount>
+      <TaxAmount>0.00</TaxAmount>
+      <TaxInclusiveAmount>${amt(total)}</TaxInclusiveAmount>
+      <AlreadyClaimedTaxableAmount>0.00</AlreadyClaimedTaxableAmount>
+      <AlreadyClaimedTaxAmount>0.00</AlreadyClaimedTaxAmount>
+      <AlreadyClaimedTaxInclusiveAmount>0.00</AlreadyClaimedTaxInclusiveAmount>
+      <DifferenceTaxableAmount>${amt(total)}</DifferenceTaxableAmount>
+      <DifferenceTaxAmount>0.00</DifferenceTaxAmount>
+      <DifferenceTaxInclusiveAmount>${amt(total)}</DifferenceTaxInclusiveAmount>
+      <TaxCategory><Percent>0</Percent><VATApplicable>false</VATApplicable></TaxCategory>
+    </TaxSubTotal>
+    <TaxAmount>0.00</TaxAmount>
+  </TaxTotal>
+  <LegalMonetaryTotal>
+    <TaxExclusiveAmount>${amt(total)}</TaxExclusiveAmount>
+    <TaxInclusiveAmount>${amt(total)}</TaxInclusiveAmount>
+    <AlreadyClaimedTaxExclusiveAmount>0.00</AlreadyClaimedTaxExclusiveAmount>
+    <AlreadyClaimedTaxInclusiveAmount>0.00</AlreadyClaimedTaxInclusiveAmount>
+    <DifferenceTaxExclusiveAmount>${amt(total)}</DifferenceTaxExclusiveAmount>
+    <DifferenceTaxInclusiveAmount>${amt(total)}</DifferenceTaxInclusiveAmount>
+    <PaidDepositsAmount>0.00</PaidDepositsAmount>
+    <PayableAmount>${amt(total)}</PayableAmount>
+  </LegalMonetaryTotal>
+  <PaymentMeans>
+    <Payment>
+      <PaidAmount>${amt(total)}</PaidAmount>
+      <PaymentMeansCode>42</PaymentMeansCode>
+      <Details>
+        <PaymentDueDate>${xe(d.dueDate)}</PaymentDueDate>
+        <ID>${xe(am ? am[1] : acc)}</ID>
+        <BankCode>${xe(am ? am[2] : '')}</BankCode>
+        <Name></Name>
+        <IBAN></IBAN>
+        <BIC></BIC>
+        <VariableSymbol>${xe(String(d.number||'').replace(/\D/g,''))}</VariableSymbol>
+      </Details>
+    </Payment>
+  </PaymentMeans>
+</Invoice>
+`;
+}
+function exportIsdoc(id){
+  const d = state.docs.find(x => x.id === id); if (!d || d.type !== 'faktura') return;
+  if (!d.uuid){ d.uuid = uuid4(); save(); }
+  const blob = new Blob([buildIsdoc(d)], {type:'application/xml'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Faktura ${d.number}.isdoc`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('ISDOC stažen');
+}
+
+ensureDocs();
+try { localStorage.setItem(KEY+'-test','1'); localStorage.removeItem(KEY+'-test'); } catch(e){ storageOk = false; }
+render();
+if (!storageOk) showWarn();
+</script>
+</body>
+</html>
