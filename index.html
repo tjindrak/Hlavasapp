@@ -15,9 +15,9 @@
   html,body{margin:0;background:#fff;color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
   .frame{padding:0;min-height:100vh}
   .card{background:#fff;border-radius:0;padding:48px 56px 40px;min-height:100vh;display:flex;flex-direction:column}
-  header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px}
-  h1{font-size:64px;font-weight:700;letter-spacing:-0.03em;margin:0;line-height:1}
-  h2{font-size:40px;font-weight:700;letter-spacing:-0.025em;margin:0;line-height:1.05}
+  header{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+  h1{font-size:40px;font-weight:700;letter-spacing:-0.025em;margin:0;line-height:1.05}
+  h2{font-size:30px;font-weight:700;letter-spacing:-0.025em;margin:0;line-height:1.05}
   h3{font-size:22px;font-weight:700;letter-spacing:-0.01em;margin:0}
   .sub{color:var(--muted);font-size:16px;margin-top:10px}
   .logo{font-weight:700;font-size:30px;letter-spacing:-0.04em;display:inline-flex;align-items:baseline}
@@ -35,6 +35,9 @@
   .btn-text.danger:hover{background:var(--red);color:#fff}
   .btn-solid{background:var(--ink);color:#fff;border:none;border-radius:999px;padding:12px 24px;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
   .btn-solid:hover{background:var(--red)}
+  .btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--red);color:#fff;border:none;border-radius:999px;padding:12px 22px 12px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s}
+  .btn-primary:hover{background:var(--red-dark)}
+  .btn-primary svg{width:16px;height:16px}
   .add-row{display:flex;align-items:center;gap:16px;cursor:pointer;user-select:none}
   .add-row b{font-size:20px}
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
@@ -114,7 +117,7 @@
 
   @media (max-width:760px){
     .card{padding:28px 20px}
-    h1{font-size:44px} h2{font-size:30px}
+    h1{font-size:32px} h2{font-size:26px}
     .cols{grid-template-columns:1fr}
     .log-form{grid-template-columns:1fr 1fr}
     .log-form input[name=note]{grid-column:1 / -1}
@@ -339,9 +342,7 @@ function renderList(){
       <div>
         <h1>Výkaz hodin</h1>
       </div>
-      <div class="add-row" onclick="openEdit()">
-        <button class="btn-round">${ICON_PLUS}</button><b>Přidat člena</b>
-      </div>
+      <button class="btn-primary" onclick="openEdit()">${ICON_PLUS}Přidat člena</button>
     </header>
     ${all.length ? `
       ${filters}
@@ -350,7 +351,7 @@ function renderList(){
         <div class="stat"><div class="num">${fmtH(sum)} h</div><div class="lbl">${view.tag ? 'odpracováno · ' + esc(view.tag) : 'odpracováno celkem'}</div></div>
       </div>
       ${ws.length ? `<div class="grid">${cards}</div>` : `<div class="empty">S tímto tagem zatím nikdo není.</div>`}`
-    : `<div class="empty">Zatím tu nikdo není. Klikni na červené plus a přidej prvního člena týmu.</div>`}
+    : `<div class="empty">Zatím tu nikdo není. Přidej prvního člena týmu tlačítkem Přidat člena.</div>`}
     ${footer()}`;
 }
 
@@ -632,9 +633,9 @@ function renderDocs(){
   return `
     <header>
       <div><h1>Ceníky a faktury</h1></div>
-      <div style="display:flex;gap:28px;flex-wrap:wrap">
-        <div class="add-row" onclick="newDoc('cenik')"><button class="btn-round">${ICON_PLUS}</button><b>Nový ceník</b></div>
-        <div class="add-row" onclick="newDoc('faktura')"><button class="btn-round">${ICON_PLUS}</button><b>Nová faktura</b></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="newDoc('cenik')">${ICON_PLUS}Nový ceník</button>
+        <button class="btn-primary" onclick="newDoc('faktura')">${ICON_PLUS}Nová faktura</button>
       </div>
     </header>
     <div class="doc-tools">
@@ -667,7 +668,7 @@ function docRows(){
   list.sort(docView.sort === 'new' ? (a,b) => (b.updated||0) - (a.updated||0)
           : docView.sort === 'name-desc' ? (a,b) => nm(b).localeCompare(nm(a), 'cs')
           : (a,b) => nm(a).localeCompare(nm(b), 'cs'));
-  if (!state.docs.length) return `<div class="empty">Zatím žádné ceníky ani faktury. Vytvoř první přes červené plus.</div>`;
+  if (!state.docs.length) return `<div class="empty">Zatím žádné ceníky ani faktury. Vytvoř první červeným tlačítkem nahoře.</div>`;
   if (!list.length) return `<div class="empty">Nic neodpovídá hledání.</div>`;
   return `<div class="doc-list">${list.map(d => `
     <div class="doc-row" onclick="openDoc('${d.id}')">
