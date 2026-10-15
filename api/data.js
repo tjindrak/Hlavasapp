@@ -44,9 +44,9 @@ export async function PUT(request) {
     if (String(body.version ?? '0') !== cur.version) return json({ conflict: true, ...pub(cur) }, 409);
     const next = cur.n + 1;
     const opts = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
-    if (cur.data === null) opts.allowOverwrite = false;
-    else if (cur.etag) { opts.allowOverwrite = true; opts.ifMatch = cur.etag; }
-    else opts.allowOverwrite = true;
+    // Kontrolu verze dělá porovnání čísla výše. ETag z get() Blob při zápisu (ifMatch) nepřijímá
+    // („ETag mismatch“), proto se zapisuje bez něj.
+    opts.allowOverwrite = cur.data !== null;
     try {
       await put(PATH, JSON.stringify({ v: next, data: body.data }), opts);
     } catch (e) {
