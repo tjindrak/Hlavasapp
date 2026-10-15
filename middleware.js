@@ -1,6 +1,7 @@
 // Přihlášení pro Hlavasapp (Vercel Routing Middleware).
 // Uživatelé a tajný klíč jsou jen v proměnných prostředí na Vercelu, nikdy v kódu:
 //   HLAVAS_USERS  = "jmeno1:heslo1;jmeno2:heslo2"
+//   nebo HLAVAS_LOGINS = "jmeno1,jmeno2" + proměnná pojmenovaná jménem s heslem (např. jmeno1 = heslo1)
 //   HLAVAS_SECRET = (nepovinné) klíč pro podpis cookie; když chybí, použije se tajný token úložiště Blob
 
 export const config = { matcher: '/:path*' };
@@ -30,10 +31,16 @@ function safeEqual(a, b) {
   return r === 0;
 }
 function users() {
-  return String(process.env.HLAVAS_USERS || '').split(';').map(s => s.trim()).filter(Boolean).map(s => {
+  const list = String(process.env.HLAVAS_USERS || '').split(';').map(s => s.trim()).filter(Boolean).map(s => {
     const i = s.indexOf(':');
     return i > 0 ? { name: s.slice(0, i).trim(), pass: s.slice(i + 1) } : null;
   }).filter(Boolean);
+  // Druhá možnost: HLAVAS_LOGINS="jmeno1,jmeno2" a heslo každého v proměnné pojmenované jeho jménem.
+  for (const name of String(process.env.HLAVAS_LOGINS || '').split(',').map(s => s.trim()).filter(Boolean)) {
+    const pass = process.env[name];
+    if (pass && !list.some(u => u.name === name)) list.push({ name, pass });
+  }
+  return list;
 }
 function readCookie(req, name) {
   const m = (req.headers.get('cookie') || '').split(/;\s*/).find(c => c.startsWith(name + '='));
@@ -51,7 +58,7 @@ export default async function middleware(req) {
   const secret = process.env.HLAVAS_SECRET || process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!secret || !users().length) {
-    return new Response('Přihlášení není nastavené: doplň HLAVAS_USERS v nastavení projektu na Vercelu.', {
+    return new Response('Přihlášení není nastavené: doplň HLAVAS_USERS (nebo HLAVAS_LOGINS) v nastavení projektu na Vercelu.', {
       status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
   }

@@ -20,3 +20,6 @@ Po změně proměnných je potřeba projekt znovu nasadit (Deployments → Redep
 Na webu se data ukládají do soukromého úložiště Vercel Blob (`api/data.js`), takže je vidí všichni přihlášení. Úložiště musí být připojené k projektu (Storage → Blob), tím se doplní `BLOB_READ_WRITE_TOKEN`.
 
 Při prvním otevření se do prázdného úložiště nahraje to, co je v prohlížeči. Souběžné úpravy dvou lidí se slučují po jednotlivých lidech a dokladech. Tečka vedle menu: zelená = uloženo, žlutá = ukládám, červená = bez připojení / úložiště není nastavené. Lokální soubor dál ukládá jen do prohlížeče.
+
+
+Místo `HLAVAS_USERS` jde také nastavit `HLAVAS_LOGINS="jmeno1,jmeno2"` a heslo každého uživatele dát do proměnné pojmenované jeho jménem (např. `jmeno1`).
