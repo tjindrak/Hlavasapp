@@ -31,12 +31,15 @@ function safeEqual(a, b) {
   return r === 0;
 }
 function users() {
-  const list = String(process.env.HLAVAS_USERS || '').split(';').map(s => s.trim()).filter(Boolean).map(s => {
+  // "jmeno:heslo;jmeno2:heslo2" v HLAVAS_USERS (nebo i v HLAVAS_LOGINS)
+  const pairs = [process.env.HLAVAS_USERS, process.env.HLAVAS_LOGINS].join(';');
+  const list = pairs.split(';').map(s => s.trim()).filter(s => s.includes(':')).map(s => {
     const i = s.indexOf(':');
-    return i > 0 ? { name: s.slice(0, i).trim(), pass: s.slice(i + 1) } : null;
+    return i > 0 ? { name: s.slice(0, i).trim(), pass: s.slice(i + 1).trim() } : null;
   }).filter(Boolean);
   // Druhá možnost: HLAVAS_LOGINS="jmeno1,jmeno2" a heslo každého v proměnné pojmenované jeho jménem.
-  for (const name of String(process.env.HLAVAS_LOGINS || '').split(',').map(s => s.trim()).filter(Boolean)) {
+  const names = String(process.env.HLAVAS_LOGINS || '').includes(':') ? '' : String(process.env.HLAVAS_LOGINS || '');
+  for (const name of names.split(',').map(s => s.trim()).filter(Boolean)) {
     const pass = process.env[name];
     if (pass && !list.some(u => u.name === name)) list.push({ name, pass });
   }
