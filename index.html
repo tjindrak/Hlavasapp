@@ -1108,7 +1108,7 @@ async function pull(){
 if (REMOTE){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
   window.addEventListener('focus', pull);
-  setInterval(() => { if (!document.hidden) pull(); }, 30000);
+  setInterval(() => { if (!document.hidden) pull(); }, 60000);
   document.addEventListener('focusout', () => setTimeout(() => { if (sync.renderPending && safeToRender()){ sync.renderPending = false; render(); } }, 0));
 }
 

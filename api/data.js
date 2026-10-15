@@ -1,59 +1,45 @@
-// Sdílená data Hlavasapp: jeden JSON v Upstash Redis (Vercel Marketplace → Upstash for Redis).
+// Sdílená data Hlavasapp: jeden soukromý JSON ve Vercel Blob.
 // Přístup hlídá middleware.js (bez přihlášení se sem nikdo nedostane).
-// Každý zápis nese verzi, ze které klient vycházel; když mezitím uložil někdo jiný, vrátí se 409
-// s aktuálními daty a klient změny sloučí.
+// Verze = ETag souboru. Zápis projde jen tehdy, když klient vychází z aktuální verze;
+// jinak vrátí 409 s aktuálními daty a klient změny sloučí.
+import { get, put, BlobPreconditionFailedError } from '@vercel/blob';
 
-const DATA_KEY = 'hlavasapp:data';
-const VER_KEY = 'hlavasapp:version';
+const PATH = 'hlavasapp/data.json';
 
-const CAS = `
-local v = redis.call('GET', KEYS[2]) or '0'
-if v ~= ARGV[1] then return {0, v} end
-redis.call('SET', KEYS[1], ARGV[2])
-return {1, tostring(redis.call('INCR', KEYS[2]))}
-`;
-
-function creds() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url, token } : null;
-}
-async function redis(c, command) {
-  const r = await fetch(c.url, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${c.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(command),
-  });
-  const j = await r.json();
-  if (!r.ok || j.error) throw new Error(j.error || `Redis ${r.status}`);
-  return j.result;
+function configured() {
+  return !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 }
 function json(body, status = 200) {
   return new Response(JSON.stringify(body), {
     status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
   });
 }
-async function current(c) {
-  const [data, version] = await redis(c, ['MGET', DATA_KEY, VER_KEY]);
-  return { version: version || '0', data: data ? JSON.parse(data) : null };
+async function current() {
+  const r = await get(PATH, { access: 'private', useCache: false });
+  if (!r || r.statusCode !== 200) return { version: '0', data: null };
+  return { version: r.blob.etag, data: JSON.parse(await new Response(r.stream).text()) };
 }
 
 export async function GET() {
-  const c = creds();
-  if (!c) return json({ error: 'not-configured' }, 503);
-  try { return json(await current(c)); }
+  if (!configured()) return json({ error: 'not-configured' }, 503);
+  try { return json(await current()); }
   catch (e) { return json({ error: String(e.message || e) }, 502); }
 }
 
 export async function PUT(request) {
-  const c = creds();
-  if (!c) return json({ error: 'not-configured' }, 503);
+  if (!configured()) return json({ error: 'not-configured' }, 503);
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad-json' }, 400); }
   if (!body || typeof body.data !== 'object' || !Array.isArray(body.data.workers)) return json({ error: 'bad-data' }, 400);
+  const version = String(body.version ?? '0');
+  const opts = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
+  if (version === '0') opts.allowOverwrite = false; else opts.ifMatch = version;
   try {
-    const [ok, version] = await redis(c, ['EVAL', CAS, '2', DATA_KEY, VER_KEY, String(body.version ?? '0'), JSON.stringify(body.data)]);
-    if (Number(ok) === 1) return json({ version: String(version) });
-    return json({ conflict: true, ...(await current(c)) }, 409);
-  } catch (e) { return json({ error: String(e.message || e) }, 502); }
+    const res = await put(PATH, JSON.stringify(body.data), opts);
+    return json({ version: res.etag });
+  } catch (e) {
+    const conflict = e instanceof BlobPreconditionFailedError || /already exists/i.test(String(e.message));
+    if (conflict) return json({ conflict: true, ...(await current()) }, 409);
+    return json({ error: String(e.message || e) }, 502);
+  }
 }

@@ -1,7 +1,7 @@
 // Přihlášení pro Hlavasapp (Vercel Routing Middleware).
 // Uživatelé a tajný klíč jsou jen v proměnných prostředí na Vercelu, nikdy v kódu:
 //   HLAVAS_USERS  = "jmeno1:heslo1;jmeno2:heslo2"
-//   HLAVAS_SECRET = dlouhý náhodný řetězec (podepisuje přihlašovací cookie)
+//   HLAVAS_SECRET = (nepovinné) klíč pro podpis cookie; když chybí, použije se tajný token úložiště Blob
 
 export const config = { matcher: '/:path*' };
 
@@ -48,10 +48,10 @@ async function validSession(token, secret) {
 
 export default async function middleware(req) {
   const url = new URL(req.url);
-  const secret = process.env.HLAVAS_SECRET;
+  const secret = process.env.HLAVAS_SECRET || process.env.BLOB_READ_WRITE_TOKEN;
 
   if (!secret || !users().length) {
-    return new Response('Přihlášení není nastavené: doplň HLAVAS_USERS a HLAVAS_SECRET v nastavení projektu na Vercelu.', {
+    return new Response('Přihlášení není nastavené: doplň HLAVAS_USERS v nastavení projektu na Vercelu.', {
       status: 503, headers: { 'content-type': 'text/plain; charset=utf-8' },
     });
   }
