@@ -281,6 +281,7 @@ function nav(){
     <div class="menu">
       <button class="${mode==='hours'?'on':''}" onclick="setMode('hours')">Výkaz hodin</button>
       <button class="${mode==='docs'?'on':''}" onclick="setMode('docs')">Ceníky a faktury</button>
+      ${location.protocol.startsWith('http') ? `<button onclick="location.href='/api/logout'" style="color:var(--muted)">Odhlásit</button>` : ''}
     </div>
   </nav>`;
 }
