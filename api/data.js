@@ -1,8 +1,8 @@
-// Sdílená data Hlavasapp: jeden soukromý JSON ve Vercel Blob.
+// Sdílená data Hlavasapp: jeden soukromý JSON ve Vercel Blob ({ v: číslo verze, data }).
 // Přístup hlídá middleware.js (bez přihlášení se sem nikdo nedostane).
-// Verze = ETag souboru. Zápis projde jen tehdy, když klient vychází z aktuální verze;
+// Zápis projde jen tehdy, když klient vychází z aktuální verze;
 // jinak vrátí 409 s aktuálními daty a klient změny sloučí.
-import { get, put, BlobPreconditionFailedError } from '@vercel/blob';
+import { get, put } from '@vercel/blob';
 
 const PATH = 'hlavasapp/data.json';
 
@@ -16,14 +16,22 @@ function json(body, status = 200) {
 }
 async function current() {
   const r = await get(PATH, { access: 'private', useCache: false });
-  if (!r || r.statusCode !== 200) return { version: '0', data: null };
-  return { version: r.blob.etag, data: JSON.parse(await new Response(r.stream).text()) };
+  if (!r || r.statusCode !== 200) return { version: '0', data: null, etag: null, n: 0 };
+  const doc = JSON.parse(await new Response(r.stream).text());
+  const wrapped = doc && typeof doc.v === 'number' && 'data' in doc;
+  return {
+    version: wrapped ? String(doc.v) : 'legacy-' + (r.blob.etag || '1'),
+    data: wrapped ? doc.data : doc,
+    etag: r.blob.etag || null,
+    n: wrapped ? doc.v : 0,
+  };
 }
+const pub = c => ({ version: c.version, data: c.data });
 
 export async function GET() {
   if (!configured()) return json({ error: 'not-configured' }, 503);
-  try { return json(await current()); }
-  catch (e) { return json({ error: String(e.message || e) }, 502); }
+  try { return json(pub(await current())); }
+  catch (e) { console.error('GET /api/data', e); return json({ error: String(e.message || e) }, 502); }
 }
 
 export async function PUT(request) {
@@ -31,15 +39,26 @@ export async function PUT(request) {
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad-json' }, 400); }
   if (!body || typeof body.data !== 'object' || !Array.isArray(body.data.workers)) return json({ error: 'bad-data' }, 400);
-  const version = String(body.version ?? '0');
-  const opts = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
-  if (version === '0') opts.allowOverwrite = false; else opts.ifMatch = version;
   try {
-    const res = await put(PATH, JSON.stringify(body.data), opts);
-    return json({ version: res.etag });
+    const cur = await current();
+    if (String(body.version ?? '0') !== cur.version) return json({ conflict: true, ...pub(cur) }, 409);
+    const next = cur.n + 1;
+    const opts = { access: 'private', contentType: 'application/json', addRandomSuffix: false, cacheControlMaxAge: 60 };
+    if (cur.data === null) opts.allowOverwrite = false;
+    else if (cur.etag) { opts.allowOverwrite = true; opts.ifMatch = cur.etag; }
+    else opts.allowOverwrite = true;
+    try {
+      await put(PATH, JSON.stringify({ v: next, data: body.data }), opts);
+    } catch (e) {
+      // někdo zapsal mezi čtením a zápisem (nebo jiná chyba): vrátím aktuální stav, klient to sloučí
+      console.error('PUT /api/data write', e);
+      const now = await current();
+      if (now.version !== cur.version) return json({ conflict: true, ...pub(now) }, 409);
+      throw e;
+    }
+    return json({ version: String(next) });
   } catch (e) {
-    const conflict = e instanceof BlobPreconditionFailedError || /already exists/i.test(String(e.message));
-    if (conflict) return json({ conflict: true, ...(await current()) }, 409);
+    console.error('PUT /api/data', e);
     return json({ error: String(e.message || e) }, 502);
   }
 }

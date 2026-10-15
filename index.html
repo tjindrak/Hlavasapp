@@ -276,7 +276,7 @@ function avatar(w, cls=''){
   return w.photo ? `<img class="avatar ${cls}" src="${w.photo}" alt="">` : `<div class="avatar ${cls}">${esc(initials(w.name))}</div>`;
 }
 function stars(r){ let s=''; for(let i=1;i<=5;i++) s += i<=r ? '★' : '<span class="off">★</span>'; return `<span class="stars">${s}</span>`; }
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),msg.length>40?5000:1800); }
 function parseHours(v){ const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : NaN; }
 function find(id){ return state.workers.find(w => w.id === id); }
 
@@ -1050,7 +1050,7 @@ function setSyncStatus(s){
 }
 function syncDot(){ return REMOTE ? `<span id="syncDot" class="sync ${sync.status}"></span>` : ''; }
 function schedulePush(){
-  if (!REMOTE || sync.status === 'off') return;
+  if (!REMOTE) return;
   clearTimeout(sync.timer); setSyncStatus('saving'); sync.pending = true;
   sync.timer = setTimeout(push, 700);
 }
@@ -1101,7 +1101,8 @@ async function push(){
       }
       throw new Error(j.error || r.status);
     }
-  } catch(e){ setSyncStatus('offline'); clearTimeout(sync.timer); sync.pending = true; sync.timer = setTimeout(push, 15000); }
+    throw new Error('opakovaný konflikt');
+  } catch(e){ sync.lastError = String(e.message || e); setSyncStatus('offline'); clearTimeout(sync.timer); sync.pending = true; sync.timer = setTimeout(push, 15000); }
   finally {
     sync.busy = false;
     if (sync.again){ sync.again = false; schedulePush(); }
@@ -1131,7 +1132,7 @@ async function pull(){
       if (safeToRender()) render(); else sync.renderPending = true;
     }
     if (dirty) schedulePush(); else setSyncStatus('ok');
-  } catch(e){ setSyncStatus('offline'); }
+  } catch(e){ sync.lastError = String(e.message || e); setSyncStatus('offline'); }
 }
 /* tlačítko Synchronizovat: hned odešle neuložené změny a stáhne nejnovější stav */
 async function syncNow(){
@@ -1147,7 +1148,7 @@ async function syncNow(){
     await pull();
     for (let i = 0; i < 100 && (sync.busy || sync.pending); i++) await new Promise(r => setTimeout(r, 100));
     if (safeToRender()) render(); else sync.renderPending = true;
-    toast({ ok:'Synchronizováno', off:'Sdílená databáze není nastavená' }[sync.status] || 'Bez připojení, zkusím to znovu');
+    toast({ ok:'Synchronizováno', off:'Sdílená databáze není nastavená' }[sync.status] || ('Nepodařilo se uložit' + (sync.lastError ? ': ' + sync.lastError : '') + '. Zkusím to znovu.'));
   } finally {
     sync.manual = false;
     const b = document.getElementById('syncBtn'); if (b) b.classList.remove('busy');
