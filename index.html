@@ -121,7 +121,9 @@
   }
 
   .topnav{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding-bottom:22px;margin-bottom:40px;border-bottom:1px solid var(--line)}
-  .menu{display:flex;gap:6px;flex-wrap:wrap}
+  .menu{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .sync{width:9px;height:9px;border-radius:50%;margin-right:8px;background:#BDBDBD;display:inline-block}
+  .sync.ok{background:#2E9E5B} .sync.saving{background:#E0A100} .sync.offline,.sync.off{background:var(--red)}
   .menu button{background:none;border:none;font:inherit;font-size:16px;font-weight:700;padding:10px 18px;border-radius:999px;cursor:pointer;color:var(--ink)}
   .menu button:hover{background:#ECECEC}
   .menu button.on{background:var(--ink);color:#fff}
@@ -219,7 +221,8 @@ function load(){
 let storageOk = true;
 function save(){
   try { localStorage.setItem(KEY, JSON.stringify(state)); storageOk = true; }
-  catch(e){ storageOk = false; showWarn(); }
+  catch(e){ storageOk = false; if (!REMOTE) showWarn(); }
+  schedulePush();
 }
 function showWarn(){
   const b = document.getElementById('warn'); if (b) b.classList.remove('hidden');
@@ -279,6 +282,7 @@ function nav(){
   return `<nav class="topnav">
     <img class="logo-img" src="${LOGO_SRC}" alt="Hlavas." onclick="setMode('hours')" style="cursor:pointer">
     <div class="menu">
+      ${syncDot()}
       <button class="${mode==='hours'?'on':''}" onclick="setMode('hours')">Výkaz hodin</button>
       <button class="${mode==='docs'?'on':''}" onclick="setMode('docs')">Ceníky a faktury</button>
       ${location.protocol.startsWith('http') ? `<button onclick="location.href='/api/logout'" style="color:var(--muted)">Odhlásit</button>` : ''}
@@ -517,10 +521,10 @@ function pickPhoto(input){
     const img = new Image();
     img.onload = () => {
       // zmenšení a ořez na čtverec, ať se data vejdou do úložiště
-      const S = 320, c = document.createElement('canvas'); c.width = c.height = S;
+      const S = 240, c = document.createElement('canvas'); c.width = c.height = S;
       const m = Math.min(img.width, img.height);
       c.getContext('2d').drawImage(img, (img.width-m)/2, (img.height-m)/2, m, m, 0, 0, S, S);
-      pendingPhoto = c.toDataURL('image/jpeg', 0.85);
+      pendingPhoto = c.toDataURL('image/jpeg', 0.8);
       document.getElementById('photoPrev').innerHTML = avatar({photo:pendingPhoto});
     };
     img.src = r.result;
@@ -1005,10 +1009,114 @@ function exportIsdoc(id){
   toast('ISDOC stažen');
 }
 
+/* ================= Sdílená data (jen na webu, ne v lokálním souboru) ================= */
+const REMOTE = location.protocol === 'http:' || location.protocol === 'https:';
+const sync = { version: null, base: null, timer: null, busy: false, again: false, status: 'local' };
+try { const s = JSON.parse(localStorage.getItem(KEY+'-sync')); if (s) { sync.version = s.version; sync.base = s.base; } } catch(e){}
+function storeSyncMeta(){ try { localStorage.setItem(KEY+'-sync', JSON.stringify({ version: sync.version, base: sync.base })); } catch(e){} }
+function setSyncStatus(s){
+  sync.status = s;
+  const el = document.getElementById('syncDot'); if (!el) return;
+  el.className = 'sync ' + s;
+  el.title = { ok:'Uloženo a sdíleno', saving:'Ukládám…', offline:'Bez připojení, uloží se později', off:'Sdílená databáze není nastavená', local:'' }[s] || '';
+}
+function syncDot(){ return REMOTE ? `<span id="syncDot" class="sync ${sync.status}"></span>` : ''; }
+function schedulePush(){
+  if (!REMOTE || sync.status === 'off') return;
+  clearTimeout(sync.timer); setSyncStatus('saving'); sync.pending = true;
+  sync.timer = setTimeout(push, 700);
+}
+/* změny od base: lokální vyhrává jen u položek, které jsem opravdu změnil */
+function mergeStates(base, local, server){
+  base = base || { workers:[], docs:[] }; server = server || { workers:[], docs:[] };
+  const out = JSON.parse(JSON.stringify(server));
+  for (const k of ['workers','docs']){
+    const b = new Map((base[k]||[]).map(x => [x.id, JSON.stringify(x)]));
+    const l = new Map((local[k]||[]).map(x => [x.id, x]));
+    let arr = out[k] || [];
+    for (const [id] of b) if (!l.has(id)) arr = arr.filter(x => x.id !== id);         // smazal jsem
+    for (const [id, x] of l){
+      if (b.get(id) === JSON.stringify(x)) continue;                                  // nezměnil jsem
+      const i = arr.findIndex(y => y.id === id);
+      if (i >= 0) arr[i] = x; else arr.push(x);                                       // přidal/upravil jsem
+    }
+    out[k] = arr;
+  }
+  if (base.me && JSON.stringify(local.me) !== JSON.stringify(base.me)) out.me = local.me;
+  if (!out.me) out.me = local.me;
+  return out;
+}
+function adoptState(data){
+  state = data; normalizeWorkers(); ensureDocs();
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+}
+function safeToRender(){
+  const a = document.activeElement;
+  return !document.getElementById('overlay') && !(mode === 'docs' && draft) && !(a && /INPUT|TEXTAREA|SELECT/.test(a.tagName));
+}
+async function push(){
+  if (sync.busy){ sync.again = true; return; }
+  sync.busy = true; sync.pending = false;
+  try {
+    for (let attempt = 0; attempt < 4; attempt++){
+      const body = JSON.stringify({ version: sync.version || '0', data: state });
+      const r = await fetch('/api/data', { method:'PUT', headers:{'content-type':'application/json'}, body, credentials:'same-origin' });
+      if (r.status === 401 || r.redirected) { location.href = '/login.html'; return; }
+      if (r.status === 503){ setSyncStatus('off'); return; }
+      const j = await r.json();
+      if (r.ok){ sync.version = j.version; sync.base = JSON.parse(JSON.stringify(state)); storeSyncMeta(); setSyncStatus('ok'); return; }
+      if (r.status === 409){
+        const merged = mergeStates(sync.base, state, j.data);
+        sync.version = j.version; adoptState(merged);
+        if (safeToRender()) render();
+        continue;
+      }
+      throw new Error(j.error || r.status);
+    }
+  } catch(e){ setSyncStatus('offline'); clearTimeout(sync.timer); sync.pending = true; sync.timer = setTimeout(push, 15000); }
+  finally {
+    sync.busy = false;
+    if (sync.again){ sync.again = false; schedulePush(); }
+  }
+}
+async function pull(){
+  if (!REMOTE || sync.busy || sync.pending) return;
+  try {
+    const r = await fetch('/api/data', { cache:'no-store', credentials:'same-origin' });
+    if (r.redirected) { location.href = '/login.html'; return; }
+    if (r.status === 503){ setSyncStatus('off'); return; }
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    const emptyLocal = !state.workers.length && !(state.docs||[]).length;
+    const dirty = sync.base ? JSON.stringify(state) !== JSON.stringify(sync.base) : !emptyLocal;
+    if (!j.data){                                      // prázdná databáze: nahraju, co mám
+      sync.version = j.version;
+      if (state.workers.length || (state.docs||[]).length) { sync.base = { workers:[], docs:[] }; schedulePush(); }
+      else setSyncStatus('ok');
+      return;
+    }
+    if (j.version === sync.version && !dirty){ setSyncStatus('ok'); return; }
+    if (j.version !== sync.version){
+      const next = dirty ? mergeStates(sync.base, state, j.data) : j.data;
+      sync.version = j.version; sync.base = JSON.parse(JSON.stringify(j.data)); storeSyncMeta();
+      adoptState(next);
+      if (safeToRender()) render(); else sync.renderPending = true;
+    }
+    if (dirty) schedulePush(); else setSyncStatus('ok');
+  } catch(e){ setSyncStatus('offline'); }
+}
+if (REMOTE){
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
+  window.addEventListener('focus', pull);
+  setInterval(() => { if (!document.hidden) pull(); }, 30000);
+  document.addEventListener('focusout', () => setTimeout(() => { if (sync.renderPending && safeToRender()){ sync.renderPending = false; render(); } }, 0));
+}
+
 ensureDocs();
 try { localStorage.setItem(KEY+'-test','1'); localStorage.removeItem(KEY+'-test'); } catch(e){ storageOk = false; }
 render();
-if (!storageOk) showWarn();
+if (!storageOk && !REMOTE) showWarn();
+if (REMOTE) pull();
 </script>
 </body>
 </html>
