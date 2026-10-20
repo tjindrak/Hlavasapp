@@ -635,6 +635,7 @@ async function delWorker(id){
   const w = find(id);
   if (!await ask(`Opravdu smazat ${w.name} včetně všech hodin a poznámek?`)) return;
   state.workers = state.workers.filter(x => x.id !== id);
+  if (REMOTE && isAdmin()) accountsApi('DELETE', null, '?workerId=' + encodeURIComponent(id)).catch(() => {});  // smazaný člen ztratí i přístup
   save(); closeModal(); goList();
 }
 
