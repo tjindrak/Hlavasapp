@@ -103,6 +103,9 @@
   .ro-note{background:#F7F7F7;border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px}
   .acc-box{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
   .acc-box .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .loginfo{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin:2px 4px 0 6px;border-radius:50%;border:1.5px solid #BDBDBD;color:#9A9A9A;font-size:10px;font-weight:700;font-family:Georgia,serif;font-style:italic;cursor:default;outline:none}
+  .loginfo:hover,.loginfo:focus{border-color:var(--ink);color:var(--ink)}
+  .loginfo:hover::after,.loginfo:focus::after{content:attr(data-tip);position:absolute;right:-8px;bottom:calc(100% + 8px);background:var(--ink);color:#fff;font:500 12px/1.55 var(--font);font-style:normal;white-space:pre;padding:8px 11px;border-radius:8px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.15)}
   .x.edit{font-size:15px;margin-right:2px}
   .items li.log-edit{display:block}
   .items li.log-edit .log-form{margin-top:0}
@@ -280,6 +283,14 @@ function isMine(w){ return isAdmin() || (w && w.id === sync.me.workerId); }
 function canEditDoc(d){ return isAdmin() || !d.id || d.createdBy === sync.me.name; }
 function fmtH(n){ return (Math.round(n*100)/100).toLocaleString('cs-CZ'); }
 function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function whoAmI(){ return (REMOTE && sync.me) ? sync.me.name : ''; }
+function fmtDT(t){ return new Date(t).toLocaleString('cs-CZ', { day:'numeric', month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+function logInfo(l){
+  const lines = [];
+  if (l.created > 1e12 || l.createdBy) lines.push('Přidáno' + (l.created > 1e12 ? ' ' + fmtDT(l.created) : '') + (l.createdBy ? ' · ' + l.createdBy : ''));
+  if (l.updated) lines.push('Upraveno ' + fmtDT(l.updated) + (l.updatedBy ? ' · ' + l.updatedBy : ''));
+  return lines.length ? `<span class="loginfo" tabindex="0" data-tip="${esc(lines.join('\n'))}" aria-label="${esc(lines.join(', '))}">i</span>` : '';
+}
 function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
 function initials(n){ return (n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); }
 function avatar(w, cls=''){
@@ -427,7 +438,7 @@ function renderDetail(w){
                 <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off" value="${esc(l.note||'')}">
                 <span style="display:flex;gap:6px;align-items:center"><button class="btn-round sm" type="button" data-go title="Uložit">${ICON_CHECK}</button><button class="x" type="button" title="Zrušit" onclick="editLog(null)">×</button></span>
               </div></li>`
-            : `<li><span class="t"><b>${fmtH(+l.hours)} h</b>${l.note ? ' · ' + esc(l.note) : ''}</span><span class="d">${fmtDate(l.date)}</span><button class="x edit" title="Upravit" onclick="editLog('${l.id}')">✎</button><button class="x" title="Smazat" onclick="delLog('${l.id}')">×</button></li>`).join('')
+            : `<li><span class="t"><b>${fmtH(+l.hours)} h</b>${l.note ? ' · ' + esc(l.note) : ''}</span><span class="d">${fmtDate(l.date)}</span>${logInfo(l)}<button class="x edit" title="Upravit" onclick="editLog('${l.id}')">✎</button><button class="x" title="Smazat" onclick="delLog('${l.id}')">×</button></li>`).join('')
             : `<li class="note-empty">Zatím žádné hodiny.</li>`}
         </ul>
         <div data-form class="log-form" data-submit="addLog(event)">
@@ -451,7 +462,7 @@ function quickAdd(e, id){
   if (!h){ q(f,'hours').focus(); toast('Zadej počet hodin'); return; }
   const w = find(id);
   w.logs = w.logs || [];
-  w.logs.push({ id: uid(), date: today(), hours: h, note: q(f,'note').value.trim(), created: Date.now() });
+  w.logs.push({ id: uid(), date: today(), hours: h, note: q(f,'note').value.trim(), created: Date.now(), createdBy: whoAmI() });
   save(); render(); toast(`+${fmtH(h)} h · ${w.name}`);
 }
 function addLog(e){
@@ -460,7 +471,7 @@ function addLog(e){
   if (!h){ q(f,'hours').focus(); toast('Zadej počet hodin'); return; }
   const w = find(view.id);
   w.logs = w.logs || [];
-  w.logs.push({ id: uid(), date: q(f,'date').value || today(), hours: h, note: q(f,'note').value.trim(), created: Date.now() });
+  w.logs.push({ id: uid(), date: q(f,'date').value || today(), hours: h, note: q(f,'note').value.trim(), created: Date.now(), createdBy: whoAmI() });
   save(); render(); toast(`+${fmtH(h)} h uloženo`);
 }
 function editLog(lid){
@@ -472,7 +483,9 @@ function saveLog(e, lid){
   const f = e.target, h = parseHours(q(f,'hours').value);
   if (!h){ q(f,'hours').focus(); toast('Zadej počet hodin'); return; }
   const l = (find(view.id).logs||[]).find(x => x.id === lid); if (!l) return;
-  l.hours = h; l.note = q(f,'note').value.trim(); l.date = q(f,'date').value || l.date;
+  const date = q(f,'date').value || l.date, note = q(f,'note').value.trim();
+  if (l.hours !== h || l.note !== note || l.date !== date){ l.updated = Date.now(); l.updatedBy = whoAmI(); }
+  l.hours = h; l.note = note; l.date = date;
   view.editLog = null; save(); render(); toast('Záznam upraven');
 }
 async function delLog(lid){

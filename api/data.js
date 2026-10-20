@@ -47,13 +47,33 @@ function cleanLogs(logs) {
     note: String(l.note || '').slice(0, 2000), created: +l.created || Date.now(),
   }));
 }
+/* kdo a kdy záznam hodin přidal / naposledy upravil – vyplňuje server, klient to nemůže podvrhnout */
+function stampLogs(oldLogs, newLogs, user, now) {
+  const prev = new Map((oldLogs || []).map(l => [l.id, l]));
+  return (newLogs || []).map(l => {
+    const o = prev.get(l.id), out = { ...l };
+    delete out.createdBy; delete out.updatedBy; delete out.updated;
+    if (!o) { out.createdBy = user; out.created = now; return out; }
+    out.created = o.created;
+    if (o.createdBy) out.createdBy = o.createdBy;
+    const changed = o.date !== l.date || +o.hours !== +l.hours || (o.note || '') !== (l.note || '');
+    if (changed) { out.updatedBy = user; out.updated = now; }
+    else if (o.updated) { out.updatedBy = o.updatedBy; out.updated = o.updated; }
+    return out;
+  });
+}
+function stampAll(server, next, user) {
+  const now = Date.now(), old = new Map(((server && server.workers) || []).map(w => [w.id, w]));
+  for (const w of next.workers || []) if (w && Array.isArray(w.logs)) w.logs = stampLogs((old.get(w.id) || {}).logs, w.logs, user, now);
+  return next;
+}
 /* zápis člena: ze serverových dat se změní jen jeho hodiny a jeho vlastní doklady */
 function applyMember(server, sub, who) {
   const user = who.name, out = clone(server || { workers: [], docs: [] });
   out.workers = out.workers || []; out.docs = out.docs || [];
   const w = out.workers.find(x => x.id === who.account.workerId);
   const sw = (sub.workers || []).find(x => x && x.id === who.account.workerId);
-  if (w && sw) w.logs = cleanLogs(sw.logs);
+  if (w && sw) w.logs = stampLogs(w.logs, cleanLogs(sw.logs), user, Date.now());
   const subDocs = new Map((Array.isArray(sub.docs) ? sub.docs : []).filter(d => d && typeof d === 'object' && d.id).map(d => [String(d.id), d]));
   const known = new Set(out.docs.map(d => d.id));
   out.docs = out.docs
@@ -88,7 +108,7 @@ export async function PUT(request) {
     const view = d => who.admin ? d : memberView(d, who);
     const cur = await current();
     if (String(body.version ?? '0') !== cur.version) return json({ conflict: true, version: cur.version, data: view(cur.data) }, 409);
-    const nextData = who.admin ? body.data : applyMember(cur.data, body.data, who);
+    const nextData = who.admin ? stampAll(cur.data, body.data, who.name) : applyMember(cur.data, body.data, who);
     const next = cur.n + 1;
     // Kontrolu verze dělá porovnání čísla výše. ETag z get() Blob při zápisu (ifMatch) nepřijímá
     // („ETag mismatch“), proto se zapisuje bez něj.
