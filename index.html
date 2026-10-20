@@ -289,7 +289,8 @@ function logInfo(l){
   const lines = [];
   if (l.created > 1e12 || l.createdBy) lines.push('Přidáno' + (l.created > 1e12 ? ' ' + fmtDT(l.created) : '') + (l.createdBy ? ' · ' + l.createdBy : ''));
   if (l.updated) lines.push('Upraveno ' + fmtDT(l.updated) + (l.updatedBy ? ' · ' + l.updatedBy : ''));
-  return lines.length ? `<span class="loginfo" tabindex="0" data-tip="${esc(lines.join('\n'))}" aria-label="${esc(lines.join(', '))}">i</span>` : '';
+  if (!lines.length) lines.push('Starší záznam, autor nebyl ukládán');
+  return `<span class="loginfo" tabindex="0" data-tip="${esc(lines.join('\n'))}" aria-label="${esc(lines.join(', '))}">i</span>`;
 }
 function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
 function initials(n){ return (n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); }
