@@ -97,6 +97,12 @@
   .items li:first-child{border-top:none}
   .items li .t{flex:1;white-space:pre-wrap;word-break:break-word}
   .items li .d{color:var(--muted);font-size:12px;white-space:nowrap;margin-top:3px}
+  .w.ro{cursor:default} .w.ro:hover{box-shadow:none;transform:none}
+  .me-pill{font-size:12px;font-weight:700;color:var(--red)}
+  fieldset.plain{border:0;margin:0;padding:0;min-width:0}
+  .ro-note{background:#F7F7F7;border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px}
+  .acc-box{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+  .acc-box .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .x.edit{font-size:15px;margin-right:2px}
   .items li.log-edit{display:block}
   .items li.log-edit .log-form{margin-top:0}
@@ -267,7 +273,11 @@ document.addEventListener('keydown', e => {
 });
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function total(w){ return (w.logs||[]).reduce((a,l) => a + (+l.hours||0), 0); }
+function total(w){ return (w.logs && w.logs.length) ? w.logs.reduce((a,l) => a + (+l.hours||0), 0) : (+w.total || 0); }
+/* role: správce vidí a mění všechno, člen jen své hodiny a své doklady (hlídá i server) */
+function isAdmin(){ return !REMOTE || !sync.me || sync.me.admin !== false; }
+function isMine(w){ return isAdmin() || (w && w.id === sync.me.workerId); }
+function canEditDoc(d){ return isAdmin() || !d.id || d.createdBy === sync.me.name; }
 function fmtH(n){ return (Math.round(n*100)/100).toLocaleString('cs-CZ'); }
 function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
@@ -296,17 +306,18 @@ function nav(){
       ${REMOTE ? `<button id="syncBtn" onclick="syncNow()" title="Uložit a načíst nejnovější data">${syncDot()}Synchronizovat</button>` : ''}
       <button class="${mode==='hours'?'on':''}" onclick="setMode('hours')">Výkaz hodin</button>
       <button class="${mode==='docs'?'on':''}" onclick="setMode('docs')">Ceníky a faktury</button>
-      ${location.protocol.startsWith('http') ? `<button onclick="location.href='/api/logout'" style="color:var(--muted)">Odhlásit</button>` : ''}
+      ${location.protocol.startsWith('http') ? `<button onclick="logout()" style="color:var(--muted)" title="${sync.me ? 'Přihlášen: ' + esc(sync.me.name) : ''}">Odhlásit</button>` : ''}
     </div>
   </nav>`;
 }
 function render(){
   const app = document.getElementById('app');
   app.innerHTML = nav() + (mode === 'docs' ? renderDocs()
-    : view.screen === 'detail' && find(view.id) ? renderDetail(find(view.id)) : renderList());
+    : view.screen === 'detail' && find(view.id) && isMine(find(view.id)) ? renderDetail(find(view.id)) : renderList());
 }
 
 function footer(){
+  if (!isAdmin()) return '';
   return `<footer>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn-text" onclick="exportData()">Exportovat zálohu</button>
@@ -327,7 +338,7 @@ function renderList(){
       ${tagsInUse.map(t => `<button class="chip ${view.tag===t?'on':''}" onclick="setTag('${esc(t).replace(/'/g,'&#39;')}')">${esc(t)} <span>${fmtH(hoursOf(t))} h</span></button>`).join('')}
     </div>`;
   const cards = ws.map(w => `
-    <div class="w" onclick="openDetail('${w.id}')">
+    <div class="w ${isMine(w)?'':'ro'}" ${isMine(w) ? `onclick="openDetail('${w.id}')"` : ''}>
       <div class="w-top">
         ${avatar(w)}
         <div style="flex:1;min-width:0">
@@ -337,20 +348,20 @@ function renderList(){
       </div>
       <div class="w-mid">
         <div class="hours">${fmtH(total(w))}<small>h</small></div>
-        ${stars(w.rating||0)}
+        ${isAdmin() ? stars(w.rating||0) : (isMine(w) ? '<span class="me-pill">To jsem já</span>' : '')}
       </div>
-      <div data-form class="quick" onclick="event.stopPropagation()" data-submit="quickAdd(event,'${w.id}')">
+      ${isMine(w) ? `<div data-form class="quick" onclick="event.stopPropagation()" data-submit="quickAdd(event,'${w.id}')">
         <input class="h" name="hours" placeholder="Hodiny" inputmode="decimal" autocomplete="off">
         <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off">
         <button class="btn-round sm" type="button" data-go title="Přidat hodiny">${ICON_PLUS}</button>
-      </div>
+      </div>` : ''}
     </div>`).join('');
   return `
     <header>
       <div>
         <h1>Výkaz hodin</h1>
       </div>
-      <button class="btn-primary" onclick="openEdit()">${ICON_PLUS}Přidat člena</button>
+      ${isAdmin() ? `<button class="btn-primary" onclick="openEdit()">${ICON_PLUS}Přidat člena</button>` : ''}
     </header>
     ${all.length ? `
       ${filters}
@@ -359,7 +370,7 @@ function renderList(){
         <div class="stat"><div class="num">${fmtH(sum)} h</div><div class="lbl">${view.tag ? 'odpracováno · ' + esc(view.tag) : 'odpracováno celkem'}</div></div>
       </div>
       ${ws.length ? `<div class="grid">${cards}</div>` : `<div class="empty">S tímto tagem zatím nikdo není.</div>`}`
-    : `<div class="empty">Zatím tu nikdo není. Přidej prvního člena týmu tlačítkem Přidat člena.</div>`}
+    : `<div class="empty">${isAdmin() ? 'Zatím tu nikdo není. Přidej prvního člena týmu tlačítkem Přidat člena.' : 'Zatím tu nikdo není.'}</div>`}
     ${footer()}`;
 }
 
@@ -392,19 +403,18 @@ function renderDetail(w){
         <div class="pills">${(w.roles||[]).map(t=>tagPill(t,'lg')).join('')}</div>
         <div class="meta">
           <div class="stat"><div class="num">${fmtH(total(w))} h</div><div class="lbl">odpracováno celkem</div></div>
-          <div class="stat">
+          ${isAdmin() ? `<div class="stat">
             <div class="rate">${[1,2,3,4,5].map(i=>`<button class="${i<=(w.rating||0)?'on':''}" onclick="setRating(${i})" title="${i} z 5">★</button>`).join('')}</div>
             <div class="lbl">moje hodnocení</div>
-          </div>
+          </div>` : ''}
         </div>
       </div>
-      <div style="display:flex;gap:10px;align-self:flex-start;flex-wrap:wrap">
+      ${isAdmin() ? `<div style="display:flex;gap:10px;align-self:flex-start;flex-wrap:wrap">
         <button class="btn-text" onclick="openEdit('${w.id}')">Upravit</button>
-      </div>
+      </div>` : ''}
     </div>
     <div class="cols">
-      ${renderNotes(w,'positives','Pozitivní','#2E9E5B')}
-      ${renderNotes(w,'negatives','Negativní','#D63333')}
+      ${isAdmin() ? renderNotes(w,'positives','Pozitivní','#2E9E5B') + renderNotes(w,'negatives','Negativní','#D63333') : ''}
       <div class="panel full">
         <div class="panel-head">
           <h3>Výkazy hodin</h3>
@@ -510,6 +520,18 @@ function openEdit(id){
       <div id="roleList">${(w.roles && w.roles.length ? w.roles : ['']).map(r => roleRow(r)).join('')}</div>
       <div class="add-row" id="roleAdd" style="margin-top:4px" onclick="addRoleRow()"><button type="button" class="btn-round sm">${ICON_PLUS}</button><b style="font-size:15px">Přidat roli</b></div>
     </div>
+    ${REMOTE && id ? `<div class="field acc-box">
+      <label>Přístup do aplikace</label>
+      <div class="hint" id="accInfo" style="margin:0 0 8px">Načítám…</div>
+      <div class="row" onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();saveAccess('${id}')}">
+        <input id="accName" placeholder="Přihlašovací jméno" autocomplete="off" autocapitalize="off">
+        <input id="accPass" type="password" placeholder="Heslo (min. 6 znaků)" autocomplete="new-password">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button type="button" class="btn-text" onclick="saveAccess('${id}')">Uložit přístup</button>
+        <button type="button" class="btn-text danger hidden" id="accDel" onclick="removeAccess('${id}')">Odebrat přístup</button>
+      </div>
+    </div>` : ''}
     <div class="modal-actions">
       <div>${id ? `<button type="button" class="btn-text danger" onclick="delWorker('${id}')">Smazat člena</button>` : ''}</div>
       <div style="display:flex;gap:10px">
@@ -522,6 +544,36 @@ function openEdit(id){
   document.body.appendChild(o);
   o.querySelector('[name=name]').focus();
   syncRoleAdd();
+  if (REMOTE && id) loadAccess(id);
+}
+/* přístup člena do aplikace (jen správce) */
+async function accountsApi(method, body, qs=''){
+  const r = await fetch('/api/accounts' + qs, { method, credentials:'same-origin', headers: body ? {'content-type':'application/json'} : {}, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('Chyba ' + r.status));
+  return j.accounts || [];
+}
+function showAccess(acc){
+  const info = document.getElementById('accInfo'); if (!info) return;
+  info.textContent = acc ? `Přihlašuje se jako „${acc.name}“. Nové heslo vyplň jen když ho chceš změnit.` : 'Zatím nemá přístup. Vyplň jméno a heslo, které mu pak předáš.';
+  if (acc) document.getElementById('accName').value = acc.name;
+  document.getElementById('accPass').value = '';
+  document.getElementById('accDel').classList.toggle('hidden', !acc);
+}
+async function loadAccess(id){
+  try { showAccess((await accountsApi('GET')).find(a => a.workerId === id)); }
+  catch(e){ const i = document.getElementById('accInfo'); if (i) i.textContent = 'Nepodařilo se načíst: ' + e.message; }
+}
+async function saveAccess(id){
+  const name = document.getElementById('accName').value.trim(), password = document.getElementById('accPass').value;
+  if (!name){ toast('Vyplň přihlašovací jméno'); return; }
+  try { showAccess((await accountsApi('POST', { name, password, workerId: id })).find(a => a.workerId === id)); toast('Přístup uložen'); }
+  catch(e){ toast(e.message); }
+}
+async function removeAccess(id){
+  if (!await ask('Odebrat tomuto členovi přístup do aplikace?', 'Odebrat')) return;
+  try { showAccess((await accountsApi('DELETE', null, '?workerId=' + encodeURIComponent(id))).find(a => a.workerId === id)); toast('Přístup odebrán'); }
+  catch(e){ toast(e.message); }
 }
 function roleRow(r){
   const opts = [...TAGS, ...(r && !TAGS.includes(r) ? [r] : [])];
@@ -675,7 +727,7 @@ function renderDocs(){
         <option value="name-desc" ${docView.sort==='name-desc'?'selected':''}>Název Z–A</option>
         <option value="new" ${docView.sort==='new'?'selected':''}>Nejnovější</option>
       </select>
-      <button class="btn-text" onclick="editMe()">Moje údaje</button>
+      ${isAdmin() ? `<button class="btn-text" onclick="editMe()">Moje údaje</button>` : ''}
     </div>
     <div id="docRows">${docRows()}</div>
     ${footer()}`;
@@ -709,7 +761,7 @@ function docRows(){
         <button class="btn-text" onclick="printDoc('${d.id}')">PDF</button>
         ${d.type==='faktura' ? `<button class="btn-text" onclick="exportIsdoc('${d.id}')">ISDOC</button>` : ''}
         <button class="btn-text" onclick="dupDoc('${d.id}')">Kopie</button>
-        <button class="x" title="Smazat" onclick="delDoc('${d.id}')">×</button>
+        ${canEditDoc(d) ? `<button class="x" title="Smazat" onclick="delDoc('${d.id}')">×</button>` : ''}
       </div>
     </div>`).join('')}</div>`;
 }
@@ -720,7 +772,7 @@ async function delDoc(id){
 }
 function dupDoc(id){
   const d = JSON.parse(JSON.stringify(state.docs.find(x => x.id === id)));
-  d.id = null; d.name = (d.name || 'Bez názvu') + ' (kopie)';
+  d.id = null; delete d.createdBy; d.name = (d.name || 'Bez názvu') + ' (kopie)';
   if (d.type === 'faktura'){ d.number = ''; d.issueDate = ''; d.dueDate = ''; draft = d; applyInvoiceDefaults(d); }
   draft = d; docView.screen = 'edit'; render(); window.scrollTo(0,0);
 }
@@ -734,9 +786,11 @@ function partyBlock(path, title, p, placeholders){
 }
 const SAMPLE_CUSTOMER = { name:'Např. Firma s.r.o.', ico:'87654321', address:'Ulice 1, 602 00 Brno', email:'kontakt@firma.cz', phone:'+420 987 654 321' };
 function renderDocEditor(){
-  const d = draft, inv = d.type === 'faktura';
+  const d = draft, inv = d.type === 'faktura', ro = !canEditDoc(d);
   return `
     <div class="back" onclick="backToDocs()"><button class="btn-round sm">${ICON_ARROW.replace('M6 18L18 6M8 6h10v10','M4 12h16M13 5l7 7-7 7')}</button>Zpět na seznam</div>
+    ${ro ? `<div class="ro-note">Tenhle doklad vytvořil někdo jiný, můžeš si ho prohlédnout, stáhnout nebo zkopírovat.</div>` : ''}
+    <fieldset class="plain" ${ro ? 'disabled' : ''}>
     <div class="seg">
       <button class="${!inv?'on':''}" onclick="setDocType('cenik')">Ceník</button>
       <button class="${inv?'on':''}" onclick="setDocType('faktura')">Faktura</button>
@@ -763,14 +817,19 @@ function renderDocEditor(){
       <div class="grand"><span>Celkem</span><span id="grandTotal">${money(docTotal(d))}</span></div>
       <div class="hint">Vyplň buď počet hodin a cenu za hodinu (celkem se dopočítá), nebo jen částku celkem.</div>
     </div>
-    <div class="editor-actions">
+    </fieldset>
+    ${ro ? `<div class="editor-actions"><span></span><div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${inv ? `<button class="btn-text" onclick="exportIsdoc('${d.id}')">Export ISDOC</button>` : ''}
+        <button class="btn-text" onclick="printDoc('${d.id}')">Export do PDF</button>
+        <button class="btn-solid" onclick="dupDoc('${d.id}')">Udělat kopii</button>
+      </div></div>` : `<div class="editor-actions">
       ${d.id ? `<button class="btn-text danger" onclick="delDocFromEditor()">Smazat</button>` : '<span></span>'}
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         ${inv ? `<button class="btn-text" onclick="saveDraft('isdoc')">Uložit a export ISDOC</button>` : ''}
         <button class="btn-text" onclick="saveDraft(true)">Uložit a export do PDF</button>
         <button class="btn-solid" onclick="saveDraft()">${inv ? 'Uložit fakturu' : 'Uložit ceník'}</button>
       </div>
-    </div>
+    </div>`}
     ${footer()}`;
 }
 function itemRow(it, i){
@@ -831,7 +890,8 @@ function saveDraft(andPrint){
     ask(`Faktura s číslem ${d.number} už existuje. Změň prosím číslo.`, 'OK', true); return;
   }
   d.updated = Date.now();
-  if (!d.id){ d.id = uid(); d.created = d.updated; state.docs.push(d); }
+  if (!canEditDoc(d)) { toast('Tenhle doklad můžeš jen zkopírovat'); return; }
+  if (!d.id){ d.id = uid(); d.created = d.updated; if (REMOTE && sync.me) d.createdBy = sync.me.name; else delete d.createdBy; state.docs.push(d); }
   else { const i = state.docs.findIndex(x => x.id === d.id); if (i < 0) state.docs.push(d); else state.docs[i] = d; }
   save();
   draft = JSON.parse(JSON.stringify(d));
@@ -1040,8 +1100,13 @@ function exportIsdoc(id){
 /* ================= Sdílená data (jen na webu, ne v lokálním souboru) ================= */
 const REMOTE = location.protocol === 'http:' || location.protocol === 'https:';
 const sync = { version: null, base: null, timer: null, busy: false, again: false, status: 'local' };
-try { const s = JSON.parse(localStorage.getItem(KEY+'-sync')); if (s) { sync.version = s.version; sync.base = s.base; } } catch(e){}
-function storeSyncMeta(){ try { localStorage.setItem(KEY+'-sync', JSON.stringify({ version: sync.version, base: sync.base })); } catch(e){} }
+try { const s = JSON.parse(localStorage.getItem(KEY+'-sync')); if (s) { sync.version = s.version; sync.base = s.base; sync.me = s.me || null; } } catch(e){}
+function storeSyncMeta(){ try { localStorage.setItem(KEY+'-sync', JSON.stringify({ version: sync.version, base: sync.base, me: sync.me })); } catch(e){} }
+async function logout(){
+  if (sync.pending || sync.busy){ clearTimeout(sync.timer); try { await push(); } catch(e){} }
+  try { [KEY, KEY+'-sync'].forEach(k => localStorage.removeItem(k)); } catch(e){}
+  location.href = '/api/logout';
+}
 function setSyncStatus(s){
   sync.status = s;
   const el = document.getElementById('syncDot'); if (!el) return;
@@ -1092,7 +1157,11 @@ async function push(){
       if (r.status === 401 || r.redirected) { location.href = '/login.html'; return; }
       if (r.status === 503){ setSyncStatus('off'); return; }
       const j = await r.json();
-      if (r.ok){ sync.version = j.version; sync.base = JSON.parse(JSON.stringify(state)); storeSyncMeta(); setSyncStatus('ok'); return; }
+      if (r.ok){
+        sync.version = j.version; sync.base = JSON.parse(JSON.stringify(state)); storeSyncMeta(); setSyncStatus('ok');
+        if (!isAdmin()) sync.refetch = true;   // server mohl změny člena oříznout: načtu jeho skutečnou podobu
+        return;
+      }
       if (r.status === 409){
         const merged = mergeStates(sync.base, state, j.data);
         sync.version = j.version; adoptState(merged);
@@ -1106,16 +1175,29 @@ async function push(){
   finally {
     sync.busy = false;
     if (sync.again){ sync.again = false; schedulePush(); }
+    else if (sync.refetch){ sync.refetch = false; pull(true); }
   }
 }
-async function pull(){
+async function pull(force){
   if (!REMOTE || sync.busy || sync.pending) return;
   try {
     const r = await fetch('/api/data', { cache:'no-store', credentials:'same-origin' });
-    if (r.redirected) { location.href = '/login.html'; return; }
+    if (r.redirected || r.status === 401) { location.href = '/login.html'; return; }
     if (r.status === 503){ setSyncStatus('off'); return; }
     if (!r.ok) throw new Error(r.status);
     const j = await r.json();
+    if (j.me){
+      const prev = sync.me;
+      sync.me = j.me;
+      // jiný uživatel než minule (nebo člen bez známého předchozího): místní data zahodím a vezmu serverová
+      if ((prev && prev.name !== j.me.name) || (!prev && !j.me.admin)){
+        sync.version = j.version; sync.base = j.data ? JSON.parse(JSON.stringify(j.data)) : { workers:[], docs:[] };
+        adoptState(j.data || { workers:[], docs:[], me: state.me }); storeSyncMeta();
+        view = { screen:'list', id:null, tag:null }; draft = null; docView.screen = 'list';
+        render(); setSyncStatus('ok'); return;
+      }
+      if (!prev || prev.admin !== j.me.admin) { storeSyncMeta(); if (safeToRender()) render(); }
+    }
     const emptyLocal = !state.workers.length && !(state.docs||[]).length;
     const dirty = sync.base ? JSON.stringify(state) !== JSON.stringify(sync.base) : !emptyLocal;
     if (!j.data){                                      // prázdná databáze: nahraju, co mám
@@ -1124,8 +1206,8 @@ async function pull(){
       else setSyncStatus('ok');
       return;
     }
-    if (j.version === sync.version && !dirty){ setSyncStatus('ok'); return; }
-    if (j.version !== sync.version){
+    if (!force && j.version === sync.version && !dirty){ setSyncStatus('ok'); return; }
+    if (force || j.version !== sync.version){
       const next = dirty ? mergeStates(sync.base, state, j.data) : j.data;
       sync.version = j.version; sync.base = JSON.parse(JSON.stringify(j.data)); storeSyncMeta();
       adoptState(next);
@@ -1156,7 +1238,7 @@ async function syncNow(){
 }
 if (REMOTE){
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
-  window.addEventListener('focus', pull);
+  window.addEventListener('focus', () => pull());
   setInterval(() => { if (!document.hidden) pull(); }, 60000);
   document.addEventListener('focusout', () => setTimeout(() => { if (sync.renderPending && safeToRender()){ sync.renderPending = false; render(); } }, 0));
 }

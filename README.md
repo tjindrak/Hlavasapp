@@ -23,3 +23,11 @@ Při prvním otevření se do prázdného úložiště nahraje to, co je v prohl
 
 
 Místo `HLAVAS_USERS` jde také nastavit `HLAVAS_LOGINS="jmeno1,jmeno2"` a heslo každého uživatele dát do proměnné pojmenované jeho jménem (např. `jmeno1`).
+
+## Role
+
+- **Správci** jsou účty z proměnných prostředí (`HLAVAS_USERS` / `HLAVAS_LOGINS`). Vidí a mění všechno.
+- **Členy** zakládá správce přímo v aplikaci: detail člena → Upravit → Přístup do aplikace (jméno + heslo).
+  Člen vidí jen jména a součty hodin ostatních, zapisuje jen své hodiny a vidí všechny ceníky a faktury;
+  upravit a smazat může jen ty, které sám vytvořil. Hodnocení a poznámky nevidí. Omezení hlídá server (`api/data.js`).
+- Hesla členů jsou v Blob uložená jen jako hash (PBKDF2), soubor `hlavasapp/accounts.json`.
