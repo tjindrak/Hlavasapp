@@ -43,7 +43,9 @@
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
   .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;color:var(--ink);display:inline-flex;gap:8px;align-items:center}
   .chip span{color:var(--muted);font-weight:400}
-  .chip:hover{border-color:var(--ink)}
+  .chip{transition:border-color .15s, color .15s}
+  .chip:not(.on):hover{border-color:var(--red);color:var(--red)}
+  .chip:not(.on):hover span{color:var(--red);opacity:.7}
   .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
   .chip.on span{color:#BDBDBD}
   .tagpill{display:inline-block;background:#F0F0F0;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:500;color:var(--ink);margin-top:5px}
