@@ -135,9 +135,7 @@
   .modal .acc-box .acc-btns{justify-content:center}
   .modal .btn-solid{background:var(--red);padding:13px 34px}
   .modal .btn-solid:hover{background:#B82828}
-  .modal-actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:28px}
-  .modal-actions .btn-solid{order:-1}
-  .modal-actions .btn-danger-row{order:2;margin-top:10px}
+  .modal-actions{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:28px;flex-wrap:wrap}
   .field{margin-bottom:16px}
   .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
   .photo-pick{display:flex;align-items:center;gap:16px}
@@ -565,9 +563,9 @@ function openEdit(id){
       </div>
     </div>` : ''}
     <div class="modal-actions">
-      <button type="button" data-go class="btn-solid">Uložit</button>
+      ${id ? `<button type="button" class="btn-text danger" onclick="delWorker('${id}')">Smazat člena</button>` : ''}
       <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
-      ${id ? `<button type="button" class="btn-text danger btn-danger-row" onclick="delWorker('${id}')">Smazat člena</button>` : ''}
+      <button type="button" data-go class="btn-solid">Uložit</button>
     </div>
   </div>`;
   o.addEventListener('mousedown', ev => { if (ev.target === o) closeModal(); });
