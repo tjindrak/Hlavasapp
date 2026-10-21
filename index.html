@@ -55,6 +55,7 @@
   .stat .num{font-size:44px;font-weight:700;letter-spacing:-0.03em}
   .stat .lbl{color:var(--muted);font-size:14px;margin-top:2px}
 
+  .team-sep{border:none;border-top:1px solid var(--line);margin:32px 0}
   .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
   @media (max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   @media (max-width:700px){.grid{grid-template-columns:1fr}}
@@ -397,7 +398,7 @@ function renderList(){
       <button class="chip ${!view.tag?'on':''}" onclick="setTag(null)">Vše <span>${fmtH(all.reduce((a,w)=>a+total(w),0))} h</span></button>
       ${tagsInUse.map(t => `<button class="chip ${view.tag===t?'on':''}" onclick="setTag('${esc(t).replace(/'/g,'&#39;')}')">${esc(t)} <span>${fmtH(hoursOf(t))} h</span></button>`).join('')}
     </div>`;
-  const cards = ws.map(w => `
+  const card = w => `
     <div class="w ${isMine(w)?'':'ro'}" data-id="${w.id}" ${isMine(w) ? `onclick="openDetail('${w.id}')"` : ''}>
       ${isAdmin() && ws.length > 1 ? `<button type="button" class="grip" title="Přetáhni a změň pořadí" onmousedown="this.closest('.w').draggable=true" onmouseup="this.closest('.w').draggable=false" onclick="event.stopPropagation()">${ICON_GRIP}</button>` : ''}
       <div class="w-top">
@@ -416,7 +417,11 @@ function renderList(){
         <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off">
         <button class="btn-round sm" type="button" data-go title="Přidat hodiny">${ICON_PLUS}</button>
       </div>` : ''}
-    </div>`).join('');
+    </div>`;
+  // testovací účty (jméno obsahuje „test“) jsou pod čarou, odděleně od týmu
+  const isTest = w => /test/i.test(w.name || '');
+  const team = ws.filter(w => !isTest(w)), tests = ws.filter(isTest);
+  const cards = `${team.length ? `<div class="grid">${team.map(card).join('')}</div>` : ''}${team.length && tests.length ? '<hr class="team-sep">' : ''}${tests.length ? `<div class="grid">${tests.map(card).join('')}</div>` : ''}`;
   return `
     <header>
       <div>
@@ -430,7 +435,7 @@ function renderList(){
         <div class="stat"><div class="num">${ws.length}</div><div class="lbl">${view.tag ? 'lidí s tagem ' + esc(view.tag) : 'členů týmu'}</div></div>
         <div class="stat"><div class="num">${fmtH(sum)} h</div><div class="lbl">${view.tag ? 'odpracováno · ' + esc(view.tag) : 'odpracováno celkem'}</div></div>
       </div>
-      ${ws.length ? `<div class="grid">${cards}</div>` : `<div class="empty">S tímto tagem zatím nikdo není.</div>`}`
+      ${ws.length ? cards : `<div class="empty">S tímto tagem zatím nikdo není.</div>`}`
     : `<div class="empty">${isAdmin() ? 'Zatím tu nikdo není. Přidej prvního člena týmu tlačítkem Přidat člena.' : 'Zatím tu nikdo není.'}</div>`}
     ${footer()}`;
 }
