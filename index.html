@@ -121,13 +121,26 @@
   .log-form{display:grid;grid-template-columns:150px 100px 1fr auto;gap:8px;margin-top:14px;align-items:center}
 
   /* modal */
-  .overlay{position:fixed;inset:0;background:rgba(20,20,20,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
-  .modal{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:460px;max-height:calc(100vh - 32px);overflow:auto}
+  .overlay{position:fixed;inset:0;background:rgba(20,20,20,.18);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+  .modal{background:#fff;border-radius:18px;padding:40px 36px 32px;width:100%;max-width:460px;max-height:calc(100vh - 32px);overflow:auto;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.14)}
   .modal h2{font-size:32px;margin-bottom:24px}
+  /* modaly: vše na střed, hlavní akce červeně */
+  .modal .field label{text-align:center}
+  .modal input,.modal select{text-align:center;text-align-last:center}
+  .modal .photo-pick{flex-direction:column;justify-content:center}
+  .modal .photo-pick > div:last-child{justify-content:center}
+  .modal .role-row{justify-content:center}
+  .modal .role-row select{flex:1}
+  .modal .add-row{justify-content:center}
+  .modal .acc-box .acc-btns{justify-content:center}
+  .modal .btn-solid{background:var(--red);padding:13px 34px}
+  .modal .btn-solid:hover{background:#B82828}
+  .modal-actions{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:28px}
+  .modal-actions .btn-solid{order:-1}
+  .modal-actions .btn-danger-row{order:2;margin-top:10px}
   .field{margin-bottom:16px}
   .field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
   .photo-pick{display:flex;align-items:center;gap:16px}
-  .modal-actions{display:flex;justify-content:space-between;gap:10px;margin-top:26px;flex-wrap:wrap}
   .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:14px;font-weight:500;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
   .toast.show{opacity:1}
 
@@ -255,7 +268,7 @@ function ask(msg, okLabel='Smazat', onlyOk=false){
   return new Promise(res => {
     const o = document.createElement('div'); o.className = 'overlay';
     o.innerHTML = `<div class="modal" style="max-width:400px"><div style="font-size:18px;font-weight:700;line-height:1.35">${esc(msg)}</div>
-      <div class="modal-actions" style="justify-content:flex-end">
+      <div class="modal-actions">
         ${onlyOk ? '' : '<button type="button" class="btn-text" data-a="0">Zrušit</button>'}
         <button type="button" class="btn-solid" data-a="1">${esc(okLabel)}</button></div></div>`;
     o.addEventListener('click', ev => { const a = ev.target.closest('[data-a]'); if (a){ o.remove(); res(a.dataset.a === '1'); } });
@@ -546,17 +559,15 @@ function openEdit(id){
         <input id="accName" placeholder="Přihlašovací jméno" autocomplete="off" autocapitalize="off">
         <input id="accPass" type="password" placeholder="Heslo (min. 6 znaků)" autocomplete="new-password">
       </div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <div class="acc-btns" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
         <button type="button" class="btn-text" onclick="saveAccess('${id}')">Uložit přístup</button>
         <button type="button" class="btn-text danger hidden" id="accDel" onclick="removeAccess('${id}')">Odebrat přístup</button>
       </div>
     </div>` : ''}
     <div class="modal-actions">
-      <div>${id ? `<button type="button" class="btn-text danger" onclick="delWorker('${id}')">Smazat člena</button>` : ''}</div>
-      <div style="display:flex;gap:10px">
-        <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
-        <button type="button" data-go class="btn-solid">Uložit</button>
-      </div>
+      <button type="button" data-go class="btn-solid">Uložit</button>
+      <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
+      ${id ? `<button type="button" class="btn-text danger btn-danger-row" onclick="delWorker('${id}')">Smazat člena</button>` : ''}
     </div>
   </div>`;
   o.addEventListener('mousedown', ev => { if (ev.target === o) closeModal(); });
@@ -935,7 +946,7 @@ function editMe(){
     <div class="sub" style="margin:-12px 0 20px">Předvyplní se jako dodavatel do každé nové faktury.</div>
     ${PARTY_FIELDS.map(([k,l]) => `<div class="field"><label>${l}</label><input name="${k}" value="${esc(m[k])}" autocomplete="off"></div>`).join('')}
     <div class="field"><label>Číslo účtu</label><input name="account" value="${esc(m.account)}" autocomplete="off"></div>
-    <div class="modal-actions" style="justify-content:flex-end">
+    <div class="modal-actions">
       <button type="button" class="btn-text" onclick="closeModal()">Zrušit</button>
       <button type="button" class="btn-solid" data-go>Uložit</button>
     </div></div>`;
