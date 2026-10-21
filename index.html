@@ -1180,7 +1180,7 @@ async function push(){
       const j = await r.json();
       if (r.ok){
         sync.version = j.version; sync.base = JSON.parse(JSON.stringify(state)); storeSyncMeta(); setSyncStatus('ok');
-        if (!isAdmin()) sync.refetch = true;   // server mohl změny člena oříznout: načtu jeho skutečnou podobu
+        sync.refetch = true;   // server doplnil kdo/kdy a u člena mohl změny oříznout: načtu skutečnou podobu
         return;
       }
       if (r.status === 409){
@@ -1268,7 +1268,7 @@ ensureDocs();
 try { localStorage.setItem(KEY+'-test','1'); localStorage.removeItem(KEY+'-test'); } catch(e){ storageOk = false; }
 render();
 if (!storageOk && !REMOTE) showWarn();
-if (REMOTE) pull();
+if (REMOTE) pull(true);   // vždy převezmu serverovou podobu (i údaje kdo/kdy, které doplňuje server)
 </script>
 </body>
 </html>
