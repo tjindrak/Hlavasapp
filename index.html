@@ -97,13 +97,14 @@
   .items li:first-child{border-top:none}
   .items li .t{flex:1;white-space:pre-wrap;word-break:break-word}
   .items li .d{color:var(--muted);font-size:12px;white-space:nowrap;margin-top:3px}
+  .items li .d .by{color:var(--ink);font-weight:600}
   .w.ro{cursor:default} .w.ro:hover{box-shadow:none;transform:none}
   .me-pill{font-size:12px;font-weight:700;color:var(--red)}
   fieldset.plain{border:0;margin:0;padding:0;min-width:0}
   .ro-note{background:#F7F7F7;border-radius:10px;padding:12px 16px;margin:0 0 18px;font-size:14px}
   .acc-box{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
   .acc-box .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .loginfo{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin:2px 4px 0 6px;border-radius:50%;border:1.5px solid #BDBDBD;color:#9A9A9A;font-size:10px;font-weight:700;font-family:Georgia,serif;font-style:italic;cursor:default;outline:none}
+  .loginfo{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin:2px 4px 0 6px;border-radius:50%;border:1.5px solid #8A8A8A;color:#6B6B6B;font-size:10px;font-weight:700;font-family:Georgia,serif;font-style:italic;cursor:default;outline:none}
   .loginfo:hover,.loginfo:focus{border-color:var(--ink);color:var(--ink)}
   .loginfo:hover::after,.loginfo:focus::after{content:attr(data-tip);position:absolute;right:-8px;bottom:calc(100% + 8px);background:var(--ink);color:#fff;font:500 12px/1.55 var(--font);font-style:normal;white-space:pre;padding:8px 11px;border-radius:8px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.15)}
   button,.chip,.x,.loginfo,input,select,textarea,.w,.doc-row,.add-row{transition:background-color .6s ease, border-color .6s ease, color .6s ease, box-shadow .6s ease, transform .6s ease}
@@ -293,6 +294,8 @@ function logInfo(l){
   if (!lines.length) lines.push('Starší záznam, autor nebyl ukládán');
   return `<span class="loginfo" tabindex="0" data-tip="${esc(lines.join('\n'))}" aria-label="${esc(lines.join(', '))}">i</span>`;
 }
+/* kdo záznam zadal – vidět rovnou v řádku, podrobnosti (kdy, kdo upravil) v ikonce i */
+function byWho(x){ return x.createdBy ? ` · <span class="by">${esc(x.createdBy)}</span>` : ''; }
 function touch(x){ x.updated = Date.now(); if (whoAmI()) x.updatedBy = whoAmI(); else delete x.updatedBy; }
 function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
 function initials(n){ return (n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); }
@@ -396,7 +399,7 @@ function renderNotes(w, kind, title, color){
       <button class="btn-round sm" onclick="showAdder('${kind}')" title="Přidat">${ICON_PLUS}</button>
     </div>
     <ul class="items">
-      ${list.length ? list.map(it => `<li><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.date)}</span>${logInfo(it)}<button class="x" title="Smazat" onclick="delNote('${kind}','${it.id}')">×</button></li>`).join('')
+      ${list.length ? list.map(it => `<li><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.date)}${byWho(it)}</span>${logInfo(it)}<button class="x" title="Smazat" onclick="delNote('${kind}','${it.id}')">×</button></li>`).join('')
         : `<li class="note-empty">Zatím nic. Přidej přes plus.</li>`}
     </ul>
     <div data-form class="adder ${list.length ? 'hidden' : ''}" id="adder-${kind}" data-submit="addNote(event,'${kind}')">
@@ -441,7 +444,7 @@ function renderDetail(w){
                 <input name="note" placeholder="Poznámka (volitelné)" autocomplete="off" value="${esc(l.note||'')}">
                 <span style="display:flex;gap:6px;align-items:center"><button class="btn-round sm" type="button" data-go title="Uložit">${ICON_CHECK}</button><button class="x" type="button" title="Zrušit" onclick="editLog(null)">×</button></span>
               </div></li>`
-            : `<li><span class="t"><b>${fmtH(+l.hours)} h</b>${l.note ? ' · ' + esc(l.note) : ''}</span><span class="d">${fmtDate(l.date)}</span>${logInfo(l)}<button class="x edit" title="Upravit" onclick="editLog('${l.id}')">✎</button><button class="x" title="Smazat" onclick="delLog('${l.id}')">×</button></li>`).join('')
+            : `<li><span class="t"><b>${fmtH(+l.hours)} h</b>${l.note ? ' · ' + esc(l.note) : ''}</span><span class="d">${fmtDate(l.date)}${byWho(l)}</span>${logInfo(l)}<button class="x edit" title="Upravit" onclick="editLog('${l.id}')">✎</button><button class="x" title="Smazat" onclick="delLog('${l.id}')">×</button></li>`).join('')
             : `<li class="note-empty">Zatím žádné hodiny.</li>`}
         </ul>
         <div data-form class="log-form" data-submit="addLog(event)">
@@ -771,7 +774,7 @@ function docRows(){
       <span class="tagpill ${d.type==='faktura'?'red':''}">${d.type==='faktura' ? 'Faktura' : 'Ceník'}</span>
       <div class="doc-main">
         <div class="w-name">${esc(d.name || 'Bez názvu')}</div>
-        <div class="w-pos">${[d.type==='faktura' ? 'č. ' + esc(d.number) : '', d.customer && d.customer.name ? esc(d.customer.name) : '', fmtDate((d.issueDate || new Date(d.updated||Date.now()).toISOString().slice(0,10)))].filter(Boolean).join(' · ')}</div>
+        <div class="w-pos">${[d.type==='faktura' ? 'č. ' + esc(d.number) : '', d.customer && d.customer.name ? esc(d.customer.name) : '', fmtDate((d.issueDate || new Date(d.updated||Date.now()).toISOString().slice(0,10))), d.createdBy ? 'vytvořil ' + esc(d.createdBy) : ''].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="doc-sum">${money(docTotal(d))}</div>
       <div class="doc-actions" onclick="event.stopPropagation()">
