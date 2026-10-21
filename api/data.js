@@ -62,9 +62,25 @@ function stampLogs(oldLogs, newLogs, user, now) {
     return out;
   });
 }
+/* pozitivní/negativní poznámky: u nových se uloží kdo a kdy je přidal, u starých zůstane původní údaj */
+function stampNotes(oldList, list, user, now) {
+  const prev = new Map((oldList || []).map(n => [n.id, n]));
+  return list.map(n => {
+    const o = prev.get(n.id), out = { ...n };
+    delete out.createdBy; delete out.created;
+    if (!o) { out.createdBy = user; out.created = now; }
+    else { if (o.createdBy) out.createdBy = o.createdBy; if (o.created) out.created = o.created; }
+    return out;
+  });
+}
 function stampAll(server, next, user) {
   const now = Date.now(), old = new Map(((server && server.workers) || []).map(w => [w.id, w]));
-  for (const w of next.workers || []) if (w && Array.isArray(w.logs)) w.logs = stampLogs((old.get(w.id) || {}).logs, w.logs, user, now);
+  for (const w of next.workers || []) {
+    if (!w) continue;
+    const o = old.get(w.id) || {};
+    if (Array.isArray(w.logs)) w.logs = stampLogs(o.logs, w.logs, user, now);
+    for (const k of ['positives', 'negatives']) if (Array.isArray(w[k])) w[k] = stampNotes(o[k], w[k], user, now);
+  }
   return next;
 }
 /* zápis člena: ze serverových dat se změní jen jeho hodiny a jeho vlastní doklady */

@@ -289,10 +289,11 @@ function fmtDT(t){ return new Date(t).toLocaleString('cs-CZ', { day:'numeric', m
 function logInfo(l){
   const lines = [];
   if (l.created > 1e12 || l.createdBy) lines.push('Přidáno' + (l.created > 1e12 ? ' ' + fmtDT(l.created) : '') + (l.createdBy ? ' · ' + l.createdBy : ''));
-  if (l.updated) lines.push('Upraveno ' + fmtDT(l.updated) + (l.updatedBy ? ' · ' + l.updatedBy : ''));
+  if (l.updated && l.updated !== l.created) lines.push('Upraveno ' + fmtDT(l.updated) + (l.updatedBy ? ' · ' + l.updatedBy : ''));
   if (!lines.length) lines.push('Starší záznam, autor nebyl ukládán');
   return `<span class="loginfo" tabindex="0" data-tip="${esc(lines.join('\n'))}" aria-label="${esc(lines.join(', '))}">i</span>`;
 }
+function touch(x){ x.updated = Date.now(); if (whoAmI()) x.updatedBy = whoAmI(); else delete x.updatedBy; }
 function fmtDate(s){ if(!s) return ''; const [y,m,d]=s.split('-'); return `${+d}. ${+m}. ${y}`; }
 function initials(n){ return (n||'?').split(/\s+/).filter(Boolean).slice(0,2).map(p=>p[0].toUpperCase()).join(''); }
 function avatar(w, cls=''){
@@ -395,7 +396,7 @@ function renderNotes(w, kind, title, color){
       <button class="btn-round sm" onclick="showAdder('${kind}')" title="Přidat">${ICON_PLUS}</button>
     </div>
     <ul class="items">
-      ${list.length ? list.map(it => `<li><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.date)}</span><button class="x" title="Smazat" onclick="delNote('${kind}','${it.id}')">×</button></li>`).join('')
+      ${list.length ? list.map(it => `<li><span class="t">${esc(it.text)}</span><span class="d">${fmtDate(it.date)}</span>${logInfo(it)}<button class="x" title="Smazat" onclick="delNote('${kind}','${it.id}')">×</button></li>`).join('')
         : `<li class="note-empty">Zatím nic. Přidej přes plus.</li>`}
     </ul>
     <div data-form class="adder ${list.length ? 'hidden' : ''}" id="adder-${kind}" data-submit="addNote(event,'${kind}')">
@@ -412,7 +413,7 @@ function renderDetail(w){
     <div class="profile">
       ${avatar(w,'lg')}
       <div class="info">
-        <h2>${esc(w.name)}</h2>
+        <h2>${esc(w.name)}${isAdmin() ? ' ' + logInfo(w) : ''}</h2>
         <div class="pills">${(w.roles||[]).map(t=>tagPill(t,'lg')).join('')}</div>
         <div class="meta">
           <div class="stat"><div class="num">${fmtH(total(w))} h</div><div class="lbl">odpracováno celkem</div></div>
@@ -501,7 +502,7 @@ function addNote(e, kind){
   e.preventDefault();
   const text = q(e.target,'text').value.trim(); if (!text) return;
   const w = find(view.id); w[kind] = w[kind] || [];
-  w[kind].push({ id: uid(), text, date: today() });
+  w[kind].push({ id: uid(), text, date: today(), created: Date.now(), createdBy: whoAmI() || undefined });
   save(); render(); showAdder(kind);
 }
 async function delNote(kind, nid){
@@ -509,7 +510,7 @@ async function delNote(kind, nid){
   const w = find(view.id); w[kind] = w[kind].filter(n => n.id !== nid); save(); render();
 }
 function setRating(r){
-  const w = find(view.id); w.rating = (w.rating === r) ? 0 : r; save(); render();
+  const w = find(view.id); w.rating = (w.rating === r) ? 0 : r; touch(w); save(); render();
 }
 
 /* add / edit modal */
@@ -629,8 +630,8 @@ function pickPhoto(input){
 function saveWorker(e, id){
   e.preventDefault();
   const f = e.target, name = q(f,'name').value.trim(); if (!name){ q(f,'name').focus(); toast('Vyplň jméno'); return; }
-  if (id){ const w = find(id); w.name = name; w.roles = readRoles(f); w.photo = pendingPhoto; }
-  else state.workers.push({ id: uid(), name, roles: readRoles(f), photo: pendingPhoto, rating: 0, logs: [], positives: [], negatives: [] });
+  if (id){ const w = find(id); w.name = name; w.roles = readRoles(f); w.photo = pendingPhoto; touch(w); }
+  else state.workers.push({ id: uid(), name, roles: readRoles(f), photo: pendingPhoto, rating: 0, logs: [], positives: [], negatives: [], created: Date.now(), createdBy: whoAmI() || undefined });
   save(); closeModal(); render(); toast('Uloženo');
 }
 async function delWorker(id){
@@ -774,6 +775,7 @@ function docRows(){
       </div>
       <div class="doc-sum">${money(docTotal(d))}</div>
       <div class="doc-actions" onclick="event.stopPropagation()">
+        ${logInfo(d)}
         <button class="btn-text" onclick="printDoc('${d.id}')">PDF</button>
         ${d.type==='faktura' ? `<button class="btn-text" onclick="exportIsdoc('${d.id}')">ISDOC</button>` : ''}
         <button class="btn-text" onclick="dupDoc('${d.id}')">Kopie</button>
@@ -788,7 +790,7 @@ async function delDoc(id){
 }
 function dupDoc(id){
   const d = JSON.parse(JSON.stringify(state.docs.find(x => x.id === id)));
-  d.id = null; delete d.createdBy; d.name = (d.name || 'Bez názvu') + ' (kopie)';
+  d.id = null; delete d.createdBy; delete d.updatedBy; d.name = (d.name || 'Bez názvu') + ' (kopie)';
   if (d.type === 'faktura'){ d.number = ''; d.issueDate = ''; d.dueDate = ''; draft = d; applyInvoiceDefaults(d); }
   draft = d; docView.screen = 'edit'; render(); window.scrollTo(0,0);
 }
@@ -905,7 +907,7 @@ function saveDraft(andPrint){
   if (d.type === 'faktura' && state.docs.some(x => x.id !== d.id && x.type === 'faktura' && x.number === d.number)){
     ask(`Faktura s číslem ${d.number} už existuje. Změň prosím číslo.`, 'OK', true); return;
   }
-  d.updated = Date.now();
+  d.updated = Date.now(); if (whoAmI()) d.updatedBy = whoAmI(); else delete d.updatedBy;
   if (!canEditDoc(d)) { toast('Tenhle doklad můžeš jen zkopírovat'); return; }
   if (!d.id){ d.id = uid(); d.created = d.updated; if (REMOTE && sync.me) d.createdBy = sync.me.name; else delete d.createdBy; state.docs.push(d); }
   else { const i = state.docs.findIndex(x => x.id === d.id); if (i < 0) state.docs.push(d); else state.docs[i] = d; }
